@@ -17,17 +17,27 @@ function Control:addSource(source)
   -- will add controller support once I have a controller to test with
 end
 
-function Control:get()
-  local value = 0
+function Control:update()
+  self.value = 0
   for _, source in ipairs(self.sources) do
-    value = source()
+    self.value = source()
   end
-  return value
+  self.downPrevious = self.downCurrent
+  self.downCurrent = self.value > self.deadzone
 end
+
+function Control:get() return self.value end
+function Control:down() return self.downCurrent end
+function Control:pressed() return self.downCurrent and not self.downPrevious end
+function Control:released() return self.downPrevious and not self.downCurrent end
 
 local function newControl(sources)
   local control = setmetatable({
     sources = {},
+    value = 0,
+    downCurrent = false,
+    downPrevious = false,
+    deadzone = .5,
   }, {__index = Control})
   for _, source in ipairs(sources) do
     control:addSource(source)
@@ -39,9 +49,16 @@ end
 
 local Manager = {}
 
-function Manager:get(control)
-  return self.controls[control]:get()
+function Manager:update()
+  for _, control in pairs(self.controls) do
+    control:update()
+  end
 end
+
+function Manager:get(control) return self.controls[control]:get() end
+function Manager:down(control) return self.controls[control]:down() end
+function Manager:pressed(control) return self.controls[control]:pressed() end
+function Manager:released(control) return self.controls[control]:released() end
 
 function flene.new(controls)
   local manager = setmetatable({
