@@ -3,6 +3,8 @@
 
 local flene = {}
 
+
+
 local Control = {}
 
 function Control:addSource(source)
@@ -24,13 +26,16 @@ function Control:get()
 end
 
 local function newControl(sources)
-  local control = {sources = {}}
-  setmetatable(control, {__index = Control})
+  local control = setmetatable({
+    sources = {},
+  }, {__index = Control})
   for _, source in ipairs(sources) do
     control:addSource(source)
   end
   return control
 end
+
+
 
 local Manager = {}
 
@@ -39,8 +44,9 @@ function Manager:get(control)
 end
 
 function flene.new(controls)
-  local manager = {controls = {}}
-  setmetatable(manager, {__index = Manager})
+  local manager = setmetatable({
+    controls = {},
+  }, {__index = Manager})
   for name, sources in pairs(controls) do
     manager.controls[name] = newControl(sources)
   end
