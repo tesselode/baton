@@ -42,8 +42,10 @@ end
 function Control:update()
   self.value = 0
   for _, source in ipairs(self.sources) do
-    self.value = source()
+    self.value = self.value + source()
   end
+  if self.value > 1 then self.value = 1 end
+
   self.downPrevious = self.downCurrent
   self.downCurrent = self.value > self.deadzone
 end
