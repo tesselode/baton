@@ -16,7 +16,7 @@ function love.update(dt)
 end
 
 function love.draw()
-  --love.graphics.print(input:get('left'), 0, 0)
+  love.graphics.print(input:get('left'), 0, 0)
   --love.graphics.print(input:down('left'), 0, 12)
   --love.graphics.print(input:pressed('left'), 0, 24)
   --love.graphics.print(input:released('left'), 0, 36)
