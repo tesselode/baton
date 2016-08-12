@@ -8,13 +8,35 @@ local flene = {}
 local Control = {}
 
 function Control:addSource(source)
-  local type, value = source:match('(.*):(.*)')
+  local type, value = source:match '(.*):(.*)'
   if type == 'key' then
     table.insert(self.sources, function()
       return love.keyboard.isDown(value) and 1 or 0
     end)
+  elseif type == 'gamepad:axis' then
+    local axis, direction = value:match '(.*)([%+%-])'
+    if direction == '+' then direction = 1 end
+    if direction == '-' then direction = -1 end
+    table.insert(self.sources, function()
+      local joystick = love.joystick.getJoysticks()[1]
+      if joystick then
+        v = joystick:getAxis(axis)
+        v = v * direction
+        if v > self.deadzone then
+          return v
+        end
+      end
+      return 0
+    end)
+  elseif type == 'gamepad:button' then
+    table.insert(self.sources, function()
+      local joystick = love.joystick.getJoysticks()[1]
+      if joystick then
+        return joystick:isGamepadDown(value) and 1 or 0
+      end
+      return 0
+    end)
   end
-  -- will add controller support once I have a controller to test with
 end
 
 function Control:update()

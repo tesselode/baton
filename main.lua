@@ -1,12 +1,12 @@
 local flene = require 'flene'
 
 local controls = {
-  left = {'key:left', 'axis:leftx-', 'button:dpleft'},
-  right = {'key:right', 'axis:leftx+', 'button:dpright'},
-  up = {'key:up', 'axis:lefty-', 'button:dpup'},
-  down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-  primary = {'key:x', 'button:a'},
-  secondary = {'key:z', 'button:x'},
+  left = {'key:left', 'gamepad:axis:leftx-', 'gamepad:button:dpleft'},
+  right = {'key:right', 'gamepad:axis:leftx+', 'gamepad:button:dpright'},
+  up = {'key:up', 'gamepad:axis:lefty-', 'gamepad:button:dpup'},
+  down = {'key:down', 'gamepad:axis:lefty+', 'gamepad:button:dpdown'},
+  primary = {'key:x', 'gamepad:button:a'},
+  secondary = {'key:z', 'gamepad:button:x'},
 }
 
 local input = flene.new(controls)
