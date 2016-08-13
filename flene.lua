@@ -20,7 +20,7 @@ function Control:addSource(source)
     table.insert(self.sources, function()
       local joystick = love.joystick.getJoysticks()[1]
       if joystick then
-        v = joystick:getAxis(axis)
+        local v = joystick:getGamepadAxis(axis)
         v = v * direction
         if v > self.deadzone then
           return v
@@ -28,7 +28,7 @@ function Control:addSource(source)
       end
       return 0
     end)
-  elseif type == 'gamepad:button' then
+  elseif type == 'gamepad:button' or type == 'gp:button' then
     table.insert(self.sources, function()
       local joystick = love.joystick.getJoysticks()[1]
       if joystick then
