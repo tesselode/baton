@@ -18,9 +18,8 @@ function Control:addSource(source)
     if direction == '+' then direction = 1 end
     if direction == '-' then direction = -1 end
     table.insert(self.sources, function()
-      local joystick = love.joystick.getJoysticks()[1]
-      if joystick then
-        local v = joystick:getGamepadAxis(axis)
+      if self.joystick then
+        local v = self.joystick:getGamepadAxis(axis)
         v = v * direction
         if v > self.deadzone then
           return v
@@ -30,9 +29,29 @@ function Control:addSource(source)
     end)
   elseif type == 'gamepad:button' or type == 'gp:button' then
     table.insert(self.sources, function()
-      local joystick = love.joystick.getJoysticks()[1]
-      if joystick then
-        return joystick:isGamepadDown(value) and 1 or 0
+      if self.joystick then
+        return self.joystick:isGamepadDown(value) and 1 or 0
+      end
+      return 0
+    end)
+  elseif type == 'joystick:axis' or type == 'joy:axis' then
+    local axis, direction = value:match '(%d+)%s*([%+%-])'
+    if direction == '+' then direction = 1 end
+    if direction == '-' then direction = -1 end
+    table.insert(self.sources, function()
+      if self.joystick then
+        local v = self.joystick:getAxis(tonumber(axis))
+        v = v * direction
+        if v > self.deadzone then
+          return v
+        end
+      end
+      return 0
+    end)
+  elseif type == 'joystick:button' or type == 'joy:button' then
+    table.insert(self.sources, function()
+      if self.joystick then
+        return self.joystick:isDown(tonumber(value)) and 1 or 0
       end
       return 0
     end)
@@ -55,13 +74,14 @@ function Control:down() return self.downCurrent end
 function Control:pressed() return self.downCurrent and not self.downPrevious end
 function Control:released() return self.downPrevious and not self.downCurrent end
 
-local function newControl(sources)
+local function newControl(sources, joystick)
   local control = setmetatable({
     sources = {},
     value = 0,
     downCurrent = false,
     downPrevious = false,
     deadzone = .5,
+    joystick = joystick,
   }, {__index = Control})
   for _, source in ipairs(sources) do
     control:addSource(source)
@@ -84,12 +104,12 @@ function Manager:down(control) return self.controls[control]:down() end
 function Manager:pressed(control) return self.controls[control]:pressed() end
 function Manager:released(control) return self.controls[control]:released() end
 
-function flene.new(controls)
+function flene.new(controls, joystick)
   local manager = setmetatable({
     controls = {},
   }, {__index = Manager})
   for name, sources in pairs(controls) do
-    manager.controls[name] = newControl(sources)
+    manager.controls[name] = newControl(sources, joystick)
   end
   return manager
 end
