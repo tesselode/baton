@@ -8,13 +8,13 @@ local flene = {}
 local Control = {}
 
 function Control:addSource(source)
-  local type, value = source:match '(.*):(.*)'
+  local type, value = source:match '(.+)%s*:%s*(.+)'
   if type == 'key' then
     table.insert(self.sources, function()
       return love.keyboard.isDown(value) and 1 or 0
     end)
   elseif type == 'gamepad:axis' or type == 'gp:axis' then
-    local axis, direction = value:match '(.*)([%+%-])'
+    local axis, direction = value:match '(.+)%s*([%+%-])'
     if direction == '+' then direction = 1 end
     if direction == '-' then direction = -1 end
     table.insert(self.sources, function()
