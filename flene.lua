@@ -13,6 +13,10 @@ function Control:addSource(source)
     table.insert(self.sources, function()
       return love.keyboard.isDown(value) and 1 or 0
     end)
+  elseif type == 'scancode' or type == 'sc' then
+    table.insert(self.sources, function()
+      return love.keyboard.isScancodeDown(value) and 1 or 0
+    end)
   elseif type == 'gamepad:axis' or type == 'gp:axis' then
     local axis, direction = value:match '(.+)%s*([%+%-])'
     if direction == '+' then direction = 1 end
