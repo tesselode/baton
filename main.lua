@@ -13,7 +13,6 @@ local input = flene.new(controls)
 
 function love.update(dt)
   input:update()
-
   for control in pairs(controls) do
     if input:pressed(control) then
       print(control, 'pressed')
