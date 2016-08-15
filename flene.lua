@@ -71,22 +71,30 @@ end
 local Player = {}
 
 function Player:_addControl(name, sources)
-  local control = {
-    sources = {},
+  self.controls[name] = {
     value = 0,
     downCurrent = false,
     downPrevious = false,
   }
-  for i = 1, #sources do
-    local type, value = sources[i]:match '(.+)%s*:%s*(.+)'
-    table.insert(control.sources, sourceFunction[type](value))
-  end
-  self.controls[name] = control
+  self:_setSources(name, sources)
 end
 
-function Player:_loadControls(controls)
+function Player:_setSources(controlName, sources)
+  self.controls[controlName].sources = {}
+  for i = 1, #sources do
+    local type, value = sources[i]:match '(.+)%s*:%s*(.+)'
+    table.insert(self.controls[controlName].sources,
+      sourceFunction[type](value))
+  end
+end
+
+function Player:setControls(controls)
   for name, sources in pairs(controls) do
-    self:_addControl(name, sources)
+    if self.controls[name] then
+      self:_setSources(name, sources)
+    else
+      self:_addControl(name, sources)
+    end
   end
 end
 
@@ -124,7 +132,7 @@ function flene.newPlayer(controls, joystick)
     joystick = joystick,
     deadzone = .5,
   }, {__index = Player})
-  player:_loadControls(controls)
+  player:setControls(controls)
   return player
 end
 
