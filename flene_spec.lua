@@ -9,10 +9,10 @@ local function findKey(hash, ...)
   return false
 end
 
+-- LOVE api mock
+local love = {}
 local keys = {}
 local scancodes = {}
-
-local love = {}
 
 love.keyboard = {}
 
@@ -24,8 +24,7 @@ function love.keyboard.isScancodeDown(...)
   return findKey(scancodes, ...)
 end
 
-_G.love = love
-
+-- gamepad mock
 local function newGamepad()
   local self = {}
 
@@ -52,6 +51,9 @@ local function newGamepad()
 
   return self
 end
+
+-- attach it to global scope, to let flene access it
+_G.love = love
 
 describe('flene', function()
   it('detects keys', function()
