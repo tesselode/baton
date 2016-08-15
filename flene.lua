@@ -1,6 +1,7 @@
 local flene = {}
 
 
+
 local sourceFunction = {}
 
 function sourceFunction.key(k)
@@ -73,15 +74,15 @@ function Control:addSource(source)
   local type, value = source:match '(.+)%s*:%s*(.+)'
   if type == 'key' then
     table.insert(self.sources, sourceFunction.key(value))
-  elseif type == 'scancode' or type == 'sc' then
+  elseif type == 'sc' then
     table.insert(self.sources, sourceFunction.scancode(value))
-  elseif type == 'gamepad:axis' or type == 'gp:axis' then
+  elseif type == 'gp:axis' then
     table.insert(self.sources, sourceFunction.gamepadAxis(value, self))
-  elseif type == 'gamepad:button' or type == 'gp:button' then
+  elseif type == 'gp:button' then
     table.insert(self.sources, sourceFunction.gamepadButton(value, self))
-  elseif type == 'joystick:axis' or type == 'joy:axis' then
+  elseif type == 'joy:axis' then
     table.insert(self.sources, sourceFunction.joystickAxis(value, self))
-  elseif type == 'joystick:button' or type == 'joy:button' then
+  elseif type == 'joy:button' then
     table.insert(self.sources, sourceFunction.joystickButton(value, self))
   end
 end
@@ -141,5 +142,7 @@ function flene.new(controls, joystick)
   end
   return player
 end
+
+
 
 return flene
