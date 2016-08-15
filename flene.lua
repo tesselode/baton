@@ -95,27 +95,27 @@ end
 
 
 
-local Manager = {}
+local Player = {}
 
-function Manager:update()
+function Player:update()
   for _, control in pairs(self.controls) do
     control:update()
   end
 end
 
-function Manager:get(control) return self.controls[control]:get() end
-function Manager:down(control) return self.controls[control]:down() end
-function Manager:pressed(control) return self.controls[control]:pressed() end
-function Manager:released(control) return self.controls[control]:released() end
+function Player:get(control) return self.controls[control]:get() end
+function Player:down(control) return self.controls[control]:down() end
+function Player:pressed(control) return self.controls[control]:pressed() end
+function Player:released(control) return self.controls[control]:released() end
 
 function flene.new(controls, joystick)
-  local manager = setmetatable({
+  local player = setmetatable({
     controls = {},
-  }, {__index = Manager})
+  }, {__index = Player})
   for name, sources in pairs(controls) do
-    manager.controls[name] = newControl(sources, joystick)
+    player.controls[name] = newControl(sources, joystick)
   end
-  return manager
+  return player
 end
 
 return flene

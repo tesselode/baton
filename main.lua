@@ -9,27 +9,27 @@ local controls = {
   secondary = {'sc:z', 'gp:button:x', 'joy:button:2'},
 }
 
-local input
+local player1
 
 function love.load()
-  input = flene.new(controls, love.joystick.getJoysticks()[1])
+  player1 = flene.new(controls, love.joystick.getJoysticks()[1])
 end
 
 function love.update(dt)
-  input:update()
+  player1:update()
   for control in pairs(controls) do
-    if input:pressed(control) then
+    if player1:pressed(control) then
       print(control, 'pressed')
     end
-    if input:released(control) then
+    if player1:released(control) then
       print(control, 'released')
     end
   end
 end
 
 function love.draw()
-  love.graphics.print(input:get('left'), 0, 0)
-  love.graphics.print(tostring(input:down('left')), 0, 12)
-  love.graphics.print(tostring(input:pressed('left')), 0, 24)
-  love.graphics.print(tostring(input:released('left')), 0, 36)
+  love.graphics.print(player1:get('left'), 0, 0)
+  love.graphics.print(tostring(player1:down('left')), 0, 12)
+  love.graphics.print(tostring(player1:pressed('left')), 0, 24)
+  love.graphics.print(tostring(player1:released('left')), 0, 36)
 end
