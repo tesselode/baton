@@ -16,51 +16,29 @@ function sourceFunction.sc(sc)
   end
 end
 
-function sourceFunction.gpaxis(value)
+function sourceFunction.axis(value)
   local axis, direction = value:match '(.+)%s*([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
   return function(self)
     if self.joystick then
-      local v = self.joystick:getGamepadAxis(axis)
+      local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
+                                or self.joystick:getGamepadAxis(axis)
       v = v * direction
-      if v > self.deadzone then
-        return v
+      return v > self.deadzone and v or 0
+    end
+    return 0
+  end
+end
+
+function sourceFunction.button(button)
+  return function(self)
+    if self.joystick then
+      if tonumber(button) then
+        return self.joystick:isDown(tonumber(button)) and 1 or 0
+      else
+        return self.joystick:isGamepadDown(button) and 1 or 0
       end
-    end
-    return 0
-  end
-end
-
-function sourceFunction.gpbutton(button)
-  return function(self)
-    if self.joystick then
-      return self.joystick:isGamepadDown(button) and 1 or 0
-    end
-    return 0
-  end
-end
-
-function sourceFunction.joyaxis(value)
-  local axis, direction = value:match '(.+)%s*([%+%-])'
-  if direction == '+' then direction = 1 end
-  if direction == '-' then direction = -1 end
-  return function(self)
-    if self.joystick then
-      local v = self.joystick:getAxis(tonumber(axis))
-      v = v * direction
-      if v > self.deadzone then
-        return v
-      end
-    end
-    return 0
-  end
-end
-
-function sourceFunction.joybutton(button)
-  return function(self)
-    if self.joystick then
-      return self.joystick:isDown(tonumber(button)) and 1 or 0
     end
     return 0
   end
