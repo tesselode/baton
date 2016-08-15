@@ -68,66 +68,63 @@ end
 
 
 
-local Control = {}
+local Player = {}
 
-function Control:addSource(source)
-  local type, value = source:match '(.+)%s*:%s*(.+)'
-  table.insert(self.sources, sourceFunction[type](value))
-end
-
-function Control:update()
-  self.value = 0
-  for i = 1, #self.sources do
-    self.value = self.value + self.sources[i](self)
-  end
-  if self.value > 1 then self.value = 1 end
-
-  self.downPrevious = self.downCurrent
-  self.downCurrent = self.value > self.deadzone
-end
-
-function Control:get() return self.value end
-function Control:down() return self.downCurrent end
-function Control:pressed() return self.downCurrent and not self.downPrevious end
-function Control:released() return self.downPrevious and not self.downCurrent end
-
-local function newControl(sources, joystick)
-  local control = setmetatable({
+function Player:_addControl(name, sources)
+  local control = {
     sources = {},
     value = 0,
     downCurrent = false,
     downPrevious = false,
-    deadzone = .5,
-    joystick = joystick,
-  }, {__index = Control})
-  for _, source in ipairs(sources) do
-    control:addSource(source)
+  }
+  for i = 1, #sources do
+    local type, value = sources[i]:match '(.+)%s*:%s*(.+)'
+    table.insert(control.sources, sourceFunction[type](value))
   end
-  return control
+  self.controls[name] = control
 end
 
-
-
-local Player = {}
+function Player:_loadControls(controls)
+  for name, sources in pairs(controls) do
+    self:_addControl(name, sources)
+  end
+end
 
 function Player:update()
   for _, control in pairs(self.controls) do
-    control:update()
+    control.value = 0
+    for i = 1, #control.sources do
+      control.value = control.value + control.sources[i](self)
+    end
+    if control.value > 1 then control.value = 1 end
+
+    control.downPrevious = control.downCurrent
+    control.downCurrent = control.value > self.deadzone
   end
 end
 
-function Player:get(control) return self.controls[control]:get() end
-function Player:down(control) return self.controls[control]:down() end
-function Player:pressed(control) return self.controls[control]:pressed() end
-function Player:released(control) return self.controls[control]:released() end
+function Player:get(control)
+  return self.controls[control].value
+end
+function Player:down(control)
+  return self.controls[control].downCurrent
+end
+function Player:pressed(control)
+  local c = self.controls[control]
+  return c.downCurrent and not c.downPrevious
+end
+function Player:released(control)
+  local c = self.controls[control]
+  return c.downPrevious and not c.downCurrent
+end
 
-function flene.new(controls, joystick)
+function flene.newPlayer(controls, joystick)
   local player = setmetatable({
     controls = {},
+    joystick = joystick,
+    deadzone = .5,
   }, {__index = Player})
-  for name, sources in pairs(controls) do
-    player.controls[name] = newControl(sources, joystick)
-  end
+  player:_loadControls(controls)
   return player
 end
 

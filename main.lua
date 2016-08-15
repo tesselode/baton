@@ -12,7 +12,7 @@ local controls = {
 local player1
 
 function love.load()
-  player1 = flene.new(controls, love.joystick.getJoysticks()[1])
+  player1 = flene.newPlayer(controls, love.joystick.getJoysticks()[1])
 end
 
 function love.update(dt)
