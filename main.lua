@@ -1,12 +1,12 @@
 local flene = require 'flene'
 
 local controls = {
-  left = {'sc:left', 'gp:axis:leftx-', 'gp:button:dpleft', 'joy:axis:1-'},
-  right = {'sc:right', 'gp:axis:leftx+', 'gp:button:dpright', 'joy:axis:1+'},
-  up = {'sc:up', 'gp:axis:lefty-', 'gp:button:dpup', 'joy:axis:2-'},
-  down = {'sc:down', 'gp:axis:lefty+', 'gp:button:dpdown', 'joy:axis:2+'},
-  primary = {'sc:x', 'gp:button:a', 'joy:button:1'},
-  secondary = {'sc:z', 'gp:button:x', 'joy:button:2'},
+  left = {'sc:left', 'gp:axis:leftx-', 'gp:button:dpleft'},
+  right = {'sc:right', 'gp:axis:leftx+', 'gp:button:dpright'},
+  up = {'sc:up', 'gp:axis:lefty-', 'gp:button:dpup'},
+  down = {'sc:down', 'gp:axis:lefty+', 'gp:button:dpdown'},
+  primary = {'sc:x', 'gp:button:a'},
+  secondary = {'sc:z', 'gp:button:x'},
 }
 
 local player1
