@@ -1,18 +1,30 @@
 local flene = require 'flene'
 
 local controls = {
-  left = {'key:left', 'axis:leftx-', 'button:dpleft'},
-  right = {'key:right', 'axis:leftx+', 'button:dpright'},
-  up = {'key:up', 'axis:lefty-', 'button:dpup'},
-  down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-  primary = {'key:x', 'button:a'},
-  secondary = {'key:z', 'button:x'},
+  left = {'sc:left', 'gp:axis:leftx-', 'gp:button:dpleft', 'joy:axis:1-'},
+  right = {'sc:right', 'gp:axis:leftx+', 'gp:button:dpright', 'joy:axis:1+'},
+  up = {'sc:up', 'gp:axis:lefty-', 'gp:button:dpup', 'joy:axis:2-'},
+  down = {'sc:down', 'gp:axis:lefty+', 'gp:button:dpdown', 'joy:axis:2+'},
+  primary = {'sc:x', 'gp:button:a', 'joy:button:1'},
+  secondary = {'sc:z', 'gp:button:x', 'joy:button:2'},
 }
 
-local input = flene.new(controls)
+local input
+
+function love.load()
+  input = flene.new(controls, love.joystick.getJoysticks()[1])
+end
 
 function love.update(dt)
   input:update()
+  for control in pairs(controls) do
+    if input:pressed(control) then
+      print(control, 'pressed')
+    end
+    if input:released(control) then
+      print(control, 'released')
+    end
+  end
 end
 
 function love.draw()
