@@ -16,15 +16,15 @@ function sourceFunction.scancode(sc)
   end
 end
 
-function sourceFunction.gamepadAxis(value, control)
+function sourceFunction.gamepadAxis(value)
   local axis, direction = value:match '(.+)%s*([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
-  return function()
-    if control.joystick then
-      local v = control.joystick:getGamepadAxis(axis)
+  return function(self)
+    if self.joystick then
+      local v = self.joystick:getGamepadAxis(axis)
       v = v * direction
-      if v > control.deadzone then
+      if v > self.deadzone then
         return v
       end
     end
@@ -32,24 +32,24 @@ function sourceFunction.gamepadAxis(value, control)
   end
 end
 
-function sourceFunction.gamepadButton(button, control)
-  return function()
-    if control.joystick then
-      return control.joystick:isGamepadDown(button) and 1 or 0
+function sourceFunction.gamepadButton(button)
+  return function(self)
+    if self.joystick then
+      return self.joystick:isGamepadDown(button) and 1 or 0
     end
     return 0
   end
 end
 
-function sourceFunction.joystickAxis(value, control)
+function sourceFunction.joystickAxis(value)
   local axis, direction = value:match '(.+)%s*([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
-  return function()
-    if control.joystick then
-      local v = control.joystick:getAxis(tonumber(axis))
+  return function(self)
+    if self.joystick then
+      local v = self.joystick:getAxis(tonumber(axis))
       v = v * direction
-      if v > control.deadzone then
+      if v > self.deadzone then
         return v
       end
     end
@@ -57,10 +57,10 @@ function sourceFunction.joystickAxis(value, control)
   end
 end
 
-function sourceFunction.joystickButton(button, control)
-  return function()
-    if control.joystick then
-      return control.joystick:isDown(tonumber(button)) and 1 or 0
+function sourceFunction.joystickButton(button)
+  return function(self)
+    if self.joystick then
+      return self.joystick:isDown(tonumber(button)) and 1 or 0
     end
     return 0
   end
@@ -77,20 +77,20 @@ function Control:addSource(source)
   elseif type == 'sc' then
     table.insert(self.sources, sourceFunction.scancode(value))
   elseif type == 'gp:axis' then
-    table.insert(self.sources, sourceFunction.gamepadAxis(value, self))
+    table.insert(self.sources, sourceFunction.gamepadAxis(value))
   elseif type == 'gp:button' then
-    table.insert(self.sources, sourceFunction.gamepadButton(value, self))
+    table.insert(self.sources, sourceFunction.gamepadButton(value))
   elseif type == 'joy:axis' then
-    table.insert(self.sources, sourceFunction.joystickAxis(value, self))
+    table.insert(self.sources, sourceFunction.joystickAxis(value))
   elseif type == 'joy:button' then
-    table.insert(self.sources, sourceFunction.joystickButton(value, self))
+    table.insert(self.sources, sourceFunction.joystickButton(value))
   end
 end
 
 function Control:update()
   self.value = 0
-  for _, source in ipairs(self.sources) do
-    self.value = self.value + source()
+  for i = 1, #self.sources do
+    self.value = self.value + self.sources[i](self)
   end
   if self.value > 1 then self.value = 1 end
 
