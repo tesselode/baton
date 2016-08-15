@@ -70,6 +70,13 @@ end
 
 local Player = {}
 
+function Player:init(controls, joystick)
+  self.controls = {}
+  self.joystick = joystick
+  self.deadzone = .5
+  self:setControls(controls)
+end
+
 function Player:_addControl(name, sources)
   self.controls[name] = {
     value = 0,
@@ -127,12 +134,8 @@ function Player:released(control)
 end
 
 function flene.newPlayer(controls, joystick)
-  local player = setmetatable({
-    controls = {},
-    joystick = joystick,
-    deadzone = .5,
-  }, {__index = Player})
-  player:setControls(controls)
+  local player = setmetatable({}, {__index = Player})
+  Player.init(player, controls, joystick)
   return player
 end
 
