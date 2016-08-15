@@ -1,7 +1,69 @@
--- PHASE 1: JUST SINGLE PLAYER
--- Axis/button interoperability, remappable controls, keyboard + controller
-
 local flene = {}
+
+
+local sourceFunction = {}
+
+function sourceFunction.key(k)
+  return function()
+    return love.keyboard.isDown(k) and 1 or 0
+  end
+end
+
+function sourceFunction.scancode(sc)
+  return function()
+    return love.keyboard.isScancodeDown(sc) and 1 or 0
+  end
+end
+
+function sourceFunction.gamepadAxis(value, control)
+  local axis, direction = value:match '(.+)%s*([%+%-])'
+  if direction == '+' then direction = 1 end
+  if direction == '-' then direction = -1 end
+  return function()
+    if control.joystick then
+      local v = control.joystick:getGamepadAxis(axis)
+      v = v * direction
+      if v > control.deadzone then
+        return v
+      end
+    end
+    return 0
+  end
+end
+
+function sourceFunction.gamepadButton(button, control)
+  return function()
+    if control.joystick then
+      return control.joystick:isGamepadDown(button) and 1 or 0
+    end
+    return 0
+  end
+end
+
+function sourceFunction.joystickAxis(value, control)
+  local axis, direction = value:match '(.+)%s*([%+%-])'
+  if direction == '+' then direction = 1 end
+  if direction == '-' then direction = -1 end
+  return function()
+    if control.joystick then
+      local v = control.joystick:getAxis(tonumber(axis))
+      v = v * direction
+      if v > control.deadzone then
+        return v
+      end
+    end
+    return 0
+  end
+end
+
+function sourceFunction.joystickButton(button, control)
+  return function()
+    if control.joystick then
+      return control.joystick:isDown(tonumber(button)) and 1 or 0
+    end
+    return 0
+  end
+end
 
 
 
@@ -10,55 +72,17 @@ local Control = {}
 function Control:addSource(source)
   local type, value = source:match '(.+)%s*:%s*(.+)'
   if type == 'key' then
-    table.insert(self.sources, function()
-      return love.keyboard.isDown(value) and 1 or 0
-    end)
+    table.insert(self.sources, sourceFunction.key(value))
   elseif type == 'scancode' or type == 'sc' then
-    table.insert(self.sources, function()
-      return love.keyboard.isScancodeDown(value) and 1 or 0
-    end)
+    table.insert(self.sources, sourceFunction.scancode(value))
   elseif type == 'gamepad:axis' or type == 'gp:axis' then
-    local axis, direction = value:match '(.+)%s*([%+%-])'
-    if direction == '+' then direction = 1 end
-    if direction == '-' then direction = -1 end
-    table.insert(self.sources, function()
-      if self.joystick then
-        local v = self.joystick:getGamepadAxis(axis)
-        v = v * direction
-        if v > self.deadzone then
-          return v
-        end
-      end
-      return 0
-    end)
+    table.insert(self.sources, sourceFunction.gamepadAxis(value, self))
   elseif type == 'gamepad:button' or type == 'gp:button' then
-    table.insert(self.sources, function()
-      if self.joystick then
-        return self.joystick:isGamepadDown(value) and 1 or 0
-      end
-      return 0
-    end)
+    table.insert(self.sources, sourceFunction.gamepadButton(value, self))
   elseif type == 'joystick:axis' or type == 'joy:axis' then
-    local axis, direction = value:match '(%d+)%s*([%+%-])'
-    if direction == '+' then direction = 1 end
-    if direction == '-' then direction = -1 end
-    table.insert(self.sources, function()
-      if self.joystick then
-        local v = self.joystick:getAxis(tonumber(axis))
-        v = v * direction
-        if v > self.deadzone then
-          return v
-        end
-      end
-      return 0
-    end)
+    table.insert(self.sources, sourceFunction.joystickAxis(value, self))
   elseif type == 'joystick:button' or type == 'joy:button' then
-    table.insert(self.sources, function()
-      if self.joystick then
-        return self.joystick:isDown(tonumber(value)) and 1 or 0
-      end
-      return 0
-    end)
+    table.insert(self.sources, sourceFunction.joystickButton(value, self))
   end
 end
 
