@@ -10,13 +10,13 @@ function sourceFunction.key(k)
   end
 end
 
-function sourceFunction.scancode(sc)
+function sourceFunction.sc(sc)
   return function()
     return love.keyboard.isScancodeDown(sc) and 1 or 0
   end
 end
 
-function sourceFunction.gamepadAxis(value)
+function sourceFunction.gpaxis(value)
   local axis, direction = value:match '(.+)%s*([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
@@ -32,7 +32,7 @@ function sourceFunction.gamepadAxis(value)
   end
 end
 
-function sourceFunction.gamepadButton(button)
+function sourceFunction.gpbutton(button)
   return function(self)
     if self.joystick then
       return self.joystick:isGamepadDown(button) and 1 or 0
@@ -41,7 +41,7 @@ function sourceFunction.gamepadButton(button)
   end
 end
 
-function sourceFunction.joystickAxis(value)
+function sourceFunction.joyaxis(value)
   local axis, direction = value:match '(.+)%s*([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
@@ -57,7 +57,7 @@ function sourceFunction.joystickAxis(value)
   end
 end
 
-function sourceFunction.joystickButton(button)
+function sourceFunction.joybutton(button)
   return function(self)
     if self.joystick then
       return self.joystick:isDown(tonumber(button)) and 1 or 0
@@ -72,19 +72,7 @@ local Control = {}
 
 function Control:addSource(source)
   local type, value = source:match '(.+)%s*:%s*(.+)'
-  if type == 'key' then
-    table.insert(self.sources, sourceFunction.key(value))
-  elseif type == 'sc' then
-    table.insert(self.sources, sourceFunction.scancode(value))
-  elseif type == 'gp:axis' then
-    table.insert(self.sources, sourceFunction.gamepadAxis(value))
-  elseif type == 'gp:button' then
-    table.insert(self.sources, sourceFunction.gamepadButton(value))
-  elseif type == 'joy:axis' then
-    table.insert(self.sources, sourceFunction.joystickAxis(value))
-  elseif type == 'joy:button' then
-    table.insert(self.sources, sourceFunction.joystickButton(value))
-  end
+  table.insert(self.sources, sourceFunction[type](value))
 end
 
 function Control:update()
