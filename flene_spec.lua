@@ -82,7 +82,7 @@ describe('flene', function()
 
   it('detects gamepad buttons', function()
     local gamepad = newGamepad()
-    local player = flene.newPlayer({ action = {'gpbutton:a'} }, gamepad)
+    local player = flene.newPlayer({ action = {'button:a'} }, gamepad)
 
     gamepad.gpbuttons.a = true
     player:update()
@@ -95,7 +95,7 @@ describe('flene', function()
 
   it('detects joystick buttons', function()
     local gamepad = newGamepad()
-    local player = flene.newPlayer({ action = {'joybutton:1'} }, gamepad)
+    local player = flene.newPlayer({ action = {'button:1'} }, gamepad)
 
     gamepad.gpbuttons[1] = true
     player:update()
@@ -109,8 +109,8 @@ describe('flene', function()
   it('detects gamepad axes', function()
     local gamepad = newGamepad()
     local player = flene.newPlayer({
-      left = {'gpaxis:leftx-'},
-      right = {'gpaxis:leftx+'}
+      left = {'axis:leftx-'},
+      right = {'axis:leftx+'}
     }, gamepad)
 
     gamepad.gpaxes.leftx = -1
@@ -132,8 +132,8 @@ describe('flene', function()
   it('detects joystick axes', function()
     local gamepad = newGamepad()
     local player = flene.newPlayer({
-      left = {'joyaxis:1-'},
-      right = {'joyaxis:1+'}
+      left = {'axis:1-'},
+      right = {'axis:1+'}
     }, gamepad)
 
     gamepad.joyaxes[1] = -1
