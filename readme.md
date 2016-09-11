@@ -53,12 +53,12 @@ Inputs are strings with the following format:
 ```
 Here is a table of the different input types and the sources that can be associated with them:
 
-|Type|Description|Source|
-|-|-|-|
-|`key`|A keyboard key.|Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)|
-|`sc`|A scancode.|Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)|
-| `axis`|A joystick or gamepad axis.|Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis)|
-|`button`|A joystick or gamepad button.|Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)|
+| Type     | Description                   | Source                                                                                                        |
+| -------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `key`    | A keyboard key.               | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                    |
+| `sc`     | A scancode.                   | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                    |
+| `axis`   | A joystick or gamepad axis.   | Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis)      |
+| `button` | A joystick or gamepad button. | Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton) |
 
 ### Players
 **Players** are the objects that monitor and manage inputs.
