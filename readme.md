@@ -51,7 +51,7 @@ Inputs are strings with the following format:
 ```lua
 '[input type]:[input source]'
 ```
-Here is a table of the different input types and the sources that can be associated with them:
+Here are the different input types and the sources that can be associated with them:
 
 | Type     | Description                   | Source                                                                                                        |
 | -------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
