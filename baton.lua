@@ -33,13 +33,13 @@ local sourceFunction = {}
 
 function sourceFunction.key(k)
   return function()
-    return love.keyboard.isDown(k) and 1 or 0
+    return love.keyboard.isDown(k) and 1 or 0, 'keyboard'
   end
 end
 
 function sourceFunction.sc(sc)
   return function()
-    return love.keyboard.isScancodeDown(sc) and 1 or 0
+    return love.keyboard.isScancodeDown(sc) and 1 or 0, 'keyboard'
   end
 end
 
@@ -52,9 +52,9 @@ function sourceFunction.axis(value)
       local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
                                 or self.joystick:getGamepadAxis(axis)
       v = v * direction
-      return v > self.deadzone and v or 0
+      return v > self.deadzone and v or 0, 'joystick'
     end
-    return 0
+    return 0, 'joystick'
   end
 end
 
@@ -62,12 +62,12 @@ function sourceFunction.button(button)
   return function(self)
     if self.joystick then
       if tonumber(button) then
-        return self.joystick:isDown(tonumber(button)) and 1 or 0
+        return self.joystick:isDown(tonumber(button)) and 1 or 0, 'joystick'
       else
-        return self.joystick:isGamepadDown(button) and 1 or 0
+        return self.joystick:isGamepadDown(button) and 1 or 0, 'joystick'
       end
     end
-    return 0
+    return 0, 'joystick'
   end
 end
 
@@ -114,7 +114,11 @@ function Player:update()
   for _, control in pairs(self.controls) do
     control.value = 0
     for i = 1, #control.sources do
-      control.value = control.value + control.sources[i](self)
+      local v, type = control.sources[i](self)
+      if v ~= 0 then
+        control.value = control.value + v
+        self.lastUsed = type
+      end
     end
     if control.value > 1 then control.value = 1 end
 
