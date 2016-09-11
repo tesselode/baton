@@ -1,6 +1,6 @@
 Baton
 -----
-**Baton** is an input library that bridges the gap between keyboard and gamepad controls and allows you to easily define and change controls on the fly.
+**Baton** is an input library for LÖVE that bridges the gap between keyboard and gamepad controls and allows you to easily define and change controls on the fly.
 
 ```lua
 local baton = require 'baton'
