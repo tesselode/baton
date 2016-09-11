@@ -52,6 +52,7 @@ Inputs are strings with the following format:
 '[input type]:[input source]'
 ```
 Here is a table of the different input types and the sources that can be associated with them:
+
 |Type|Description|Source|
 |-|-|-|
 |`key`|A keyboard key.|Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)|
