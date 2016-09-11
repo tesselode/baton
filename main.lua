@@ -1,4 +1,4 @@
-local flene = require 'flene'
+local baton = require 'baton'
 
 local controls = {
   left = {'sc:left', 'axis:leftx-', 'button:dpleft'},
@@ -12,7 +12,7 @@ local controls = {
 local player1
 
 function love.load()
-  player1 = flene.newPlayer(controls, love.joystick.getJoysticks()[1])
+  player1 = baton.newPlayer(controls, love.joystick.getJoysticks()[1])
 end
 
 function love.update(dt)

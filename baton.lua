@@ -1,4 +1,4 @@
-local flene = {}
+local baton = {}
 
 
 
@@ -111,7 +111,7 @@ function Player:released(control)
   return c.downPrevious and not c.downCurrent
 end
 
-function flene.newPlayer(controls, joystick)
+function baton.newPlayer(controls, joystick)
   local player = setmetatable({}, {__index = Player})
   Player.init(player, controls, joystick)
   return player
@@ -119,4 +119,4 @@ end
 
 
 
-return flene
+return baton

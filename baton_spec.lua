@@ -1,5 +1,5 @@
 -- luacheck: globals describe it before_each
-local flene = require 'flene'
+local baton = require 'baton'
 
 -- attempts to find a key in a table from a list of keys
 local function findKey(hash, ...)
@@ -52,12 +52,12 @@ local function newGamepad()
   return self
 end
 
--- attach it to global scope, to let flene access it
+-- attach it to global scope, to let baton access it
 _G.love = love
 
-describe('flene', function()
+describe('baton', function()
   it('detects keys', function()
-    local player = flene.newPlayer({ action = {'key:a'} })
+    local player = baton.newPlayer({ action = {'key:a'} })
 
     keys.a = true
     player:update()
@@ -69,7 +69,7 @@ describe('flene', function()
   end)
 
   it('detects scancodes', function()
-    local player = flene.newPlayer({ action = {'sc:a'} })
+    local player = baton.newPlayer({ action = {'sc:a'} })
 
     scancodes.a = true
     player:update()
@@ -82,7 +82,7 @@ describe('flene', function()
 
   it('detects gamepad buttons', function()
     local gamepad = newGamepad()
-    local player = flene.newPlayer({ action = {'button:a'} }, gamepad)
+    local player = baton.newPlayer({ action = {'button:a'} }, gamepad)
 
     gamepad.gpbuttons.a = true
     player:update()
@@ -95,7 +95,7 @@ describe('flene', function()
 
   it('detects joystick buttons', function()
     local gamepad = newGamepad()
-    local player = flene.newPlayer({ action = {'button:1'} }, gamepad)
+    local player = baton.newPlayer({ action = {'button:1'} }, gamepad)
 
     gamepad.gpbuttons[1] = true
     player:update()
@@ -108,7 +108,7 @@ describe('flene', function()
 
   it('detects gamepad axes', function()
     local gamepad = newGamepad()
-    local player = flene.newPlayer({
+    local player = baton.newPlayer({
       left = {'axis:leftx-'},
       right = {'axis:leftx+'}
     }, gamepad)
@@ -131,7 +131,7 @@ describe('flene', function()
 
   it('detects joystick axes', function()
     local gamepad = newGamepad()
-    local player = flene.newPlayer({
+    local player = baton.newPlayer({
       left = {'axis:1-'},
       right = {'axis:1+'}
     }, gamepad)
