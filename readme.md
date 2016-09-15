@@ -115,6 +115,8 @@ Just pass in a new table of controls, and the player will seamlessly update to u
 
 You can also change the deadzone of the player by setting `player.deadzone` to a number between `0` and `1`. The deadzone is set to `0.5` by default.
 
+If you need to access or change the joystick associated with a player, use `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
+
 #### Detecting the last used input device
 You can use the property `player.lastUsed` to see which input device was last used for the player. It will either be `'keyboard'` or `'joystick'` (or `nil` if no inputs have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
 
