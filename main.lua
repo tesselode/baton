@@ -32,4 +32,5 @@ function love.draw()
   love.graphics.print(tostring(player1:down('left')), 0, 12)
   love.graphics.print(tostring(player1:pressed('left')), 0, 24)
   love.graphics.print(tostring(player1:released('left')), 0, 36)
+  love.graphics.print(tostring(player1.lastUsed), 0, 48)
 end

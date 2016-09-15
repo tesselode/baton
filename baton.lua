@@ -33,13 +33,13 @@ local sourceFunction = {}
 
 function sourceFunction.key(k)
   return function()
-    return love.keyboard.isDown(k) and 1 or 0
+    return love.keyboard.isDown(k) and 1 or 0, 'keyboard'
   end
 end
 
 function sourceFunction.sc(sc)
   return function()
-    return love.keyboard.isScancodeDown(sc) and 1 or 0
+    return love.keyboard.isScancodeDown(sc) and 1 or 0, 'keyboard'
   end
 end
 
@@ -52,9 +52,9 @@ function sourceFunction.axis(value)
       local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
                                 or self.joystick:getGamepadAxis(axis)
       v = v * direction
-      return v > self.deadzone and v or 0
+      return v > self.deadzone and v or 0, 'joystick'
     end
-    return 0
+    return 0, 'joystick'
   end
 end
 
@@ -62,12 +62,12 @@ function sourceFunction.button(button)
   return function(self)
     if self.joystick then
       if tonumber(button) then
-        return self.joystick:isDown(tonumber(button)) and 1 or 0
+        return self.joystick:isDown(tonumber(button)) and 1 or 0, 'joystick'
       else
-        return self.joystick:isGamepadDown(button) and 1 or 0
+        return self.joystick:isGamepadDown(button) and 1 or 0, 'joystick'
       end
     end
-    return 0
+    return 0, 'joystick'
   end
 end
 
@@ -75,15 +75,15 @@ end
 
 local Player = {}
 
-function Player:init(controls, joystick)
-  self.controls = {}
+function Player:_init(controls, joystick)
+  self._controls = {}
   self.joystick = joystick
   self.deadzone = .5
   self:setControls(controls)
 end
 
 function Player:_addControl(name, sources)
-  self.controls[name] = {
+  self._controls[name] = {
     value = 0,
     downCurrent = false,
     downPrevious = false,
@@ -92,17 +92,17 @@ function Player:_addControl(name, sources)
 end
 
 function Player:_setSources(controlName, sources)
-  self.controls[controlName].sources = {}
+  self._controls[controlName].sources = {}
   for i = 1, #sources do
     local type, value = sources[i]:match '(.+)%s*:%s*(.+)'
-    table.insert(self.controls[controlName].sources,
+    table.insert(self._controls[controlName].sources,
       sourceFunction[type](value))
   end
 end
 
 function Player:setControls(controls)
   for name, sources in pairs(controls) do
-    if self.controls[name] then
+    if self._controls[name] then
       self:_setSources(name, sources)
     else
       self:_addControl(name, sources)
@@ -111,10 +111,14 @@ function Player:setControls(controls)
 end
 
 function Player:update()
-  for _, control in pairs(self.controls) do
+  for _, control in pairs(self._controls) do
     control.value = 0
     for i = 1, #control.sources do
-      control.value = control.value + control.sources[i](self)
+      local v, type = control.sources[i](self)
+      if v ~= 0 then
+        control.value = control.value + v
+        self.lastUsed = type
+      end
     end
     if control.value > 1 then control.value = 1 end
 
@@ -124,23 +128,23 @@ function Player:update()
 end
 
 function Player:get(control)
-  return self.controls[control].value
+  return self._controls[control].value
 end
 function Player:down(control)
-  return self.controls[control].downCurrent
+  return self._controls[control].downCurrent
 end
 function Player:pressed(control)
-  local c = self.controls[control]
+  local c = self._controls[control]
   return c.downCurrent and not c.downPrevious
 end
 function Player:released(control)
-  local c = self.controls[control]
+  local c = self._controls[control]
   return c.downPrevious and not c.downCurrent
 end
 
 function baton.newPlayer(controls, joystick)
   local player = setmetatable({}, {__index = Player})
-  Player.init(player, controls, joystick)
+  Player._init(player, controls, joystick)
   return player
 end
 
