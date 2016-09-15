@@ -43,6 +43,12 @@ function sourceFunction.sc(sc)
   end
 end
 
+function sourceFunction.mouse(button)
+  return function()
+    return love.mouse.isDown(tonumber(button)) and 1 or 0, 'mouse'
+  end
+end
+
 function sourceFunction.axis(value)
   local axis, direction = value:match '(.+)%s*([%+%-])'
   if direction == '+' then direction = 1 end
