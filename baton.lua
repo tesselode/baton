@@ -31,15 +31,15 @@ local baton = {
 
 local sourceFunction = {}
 
-function sourceFunction.key(k)
+function sourceFunction.key(key)
   return function()
-    return love.keyboard.isDown(k) and 1 or 0, 'keyboard'
+    return love.keyboard.isDown(key) and 1 or 0, 'keyboard'
   end
 end
 
-function sourceFunction.sc(sc)
+function sourceFunction.sc(scancode)
   return function()
-    return love.keyboard.isScancodeDown(sc) and 1 or 0, 'keyboard'
+    return love.keyboard.isScancodeDown(scancode) and 1 or 0, 'keyboard'
   end
 end
 
