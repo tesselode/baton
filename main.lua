@@ -1,7 +1,7 @@
 local baton = require 'baton'
 
 local controls = {
-  left = {'sc:left', 'axis:leftx-', 'button:dpleft'},
+  left = {'sc:left', 'axis:leftx-', 'button:dpleft', 'mouse:1'},
   right = {'sc:right', 'axis:leftx+', 'button:dpright'},
   up = {'sc:up', 'axis:lefty-', 'button:dpup'},
   down = {'sc:down', 'axis:lefty+', 'button:dpdown'},

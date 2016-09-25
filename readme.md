@@ -53,12 +53,13 @@ Inputs are strings with the following format:
 ```
 Here are the different input types and the sources that can be associated with them:
 
-| Type     | Description                   | Source                                                                                                                                                                  |
-| -------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `key`    | A keyboard key.               | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                                                                              |
-| `sc`     | A scancode.                   | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                                                                              |
-| `axis`   | A joystick or gamepad axis.   | Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis). Add a '+' or '-' on the end to denote the direction to detect.|
-| `button` | A joystick or gamepad button. | Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)                                                           |
+| Type    | Description                  | Source                                                                                                                                                                  |
+| --------| -----------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `key`   | A keyboard key.              | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                                                                              |
+| `sc`    | A scancode.                  | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                                                                              |
+| `mouse` | A mouse button.              | A number representing a mouse button (see [love.mouse.isDown](https://love2d.org/wiki/love.mouse.isDown))                                                               |
+| `axis`  | A joystick or gamepad axis.  | Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis). Add a '+' or '-' on the end to denote the direction to detect.|
+| `button`| A joystick or gamepad button.| Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)                                                           |
 
 ### Players
 **Players** are the objects that monitor and manage inputs.
@@ -118,7 +119,7 @@ You can also change the deadzone of the player by setting `player.deadzone` to a
 If you need to access or change the joystick associated with a player, use `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
 
 #### Detecting the last used input device
-You can use the property `player.lastUsed` to see which input device was last used for the player. It will either be `'keyboard'` or `'joystick'` (or `nil` if no inputs have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
+You can use the property `player.lastUsed` to see which input device was last used for the player. It will either be `'keyboard'`, `'joystick'`, or `'mouse'` (or `nil` if no inputs have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
 
 Contributing
 ============
