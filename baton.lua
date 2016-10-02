@@ -86,6 +86,14 @@ end
 
 local Player = {}
 
+function Player:_determineActiveDevice()
+  if any(self._controls.keyboard, function(c) return c.active end) then
+    self._active = 'keyboard'
+  elseif any(self._controls.joystick, function(c) return c.active end) then
+    self._active = 'joystick'
+  end
+end
+
 function Player:_updateControls(controls)
   for _, control in pairs(controls) do
     control.active = false
@@ -93,17 +101,13 @@ function Player:_updateControls(controls)
     for i = 1, #control.sources do
       local source = control.sources[i]
       local v = source(self)
-      if v ~= 0 then
+      if v > self.deadzone then
         control.active = true
-        control.value = control.value + v
       end
+      control.value = control.value + v
     end
     if control.value > 1 then control.value = 1 end
   end
-end
-
-function Player:_isKeyboardActive()
-  return any(self._controls.keyboard, function(c) return c.active end)
 end
 
 function Player:changeControls(controls)
@@ -134,19 +138,26 @@ end
 function Player:update()
   self:_updateControls(self._controls.keyboard)
   self:_updateControls(self._controls.joystick)
+  self:_determineActiveDevice()
 end
 
 function Player:getRaw(name)
-  if self:_isKeyboardActive() then
+  if self._active == 'keyboard' then
     return self._controls.keyboard[name].value
-  else
+  elseif self._active == 'joystick' then
     return self._controls.joystick[name].value
+  else
+    return 0
   end
 end
 
 function Player:get(name)
   local v = self:getRaw(name)
   return v > self.deadzone and v or 0
+end
+
+function Player:getActiveDevice()
+  return self._active
 end
 
 function baton.new(controls, joystick)

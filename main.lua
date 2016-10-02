@@ -38,4 +38,7 @@ function love.draw()
   y = y + 200 * input:getRaw 'down'
   y = y - 200 * input:getRaw 'up'
   love.graphics.circle('fill', x, y, 8)
+
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.print(tostring(input:getActiveDevice()))
 end
