@@ -13,7 +13,7 @@ local controls = {
   shoot = {'key:x', 'button:a'}
 }
 
-local input = baton.newPlayer(controls, love.joystick.getJoysticks()[1])
+local input = baton.new(controls, love.joystick.getJoysticks()[1])
 
 function love.update(dt)
   input:update()
@@ -65,9 +65,9 @@ Here are the different input types and the sources that can be associated with t
 **Players** are the objects that monitor and manage inputs.
 
 #### Creating players
-To create a player, use `baton.newPlayer`:
+To create a player, use `baton.new`:
 ```lua
-player = baton.newPlayer(controls, joystick)
+player = baton.new(controls, joystick)
 ```
 `controls` is a table of controls, and `joystick` is a LÖVE joystick (returned from `love.joystick.getJoysticks`). The `joystick` argument is optional; if it's not specified, or if the joystick becomes unavailable later, the player object will just ignore controller inputs.
 
@@ -86,7 +86,7 @@ For example, for the controls defined above, we could get the value of the "left
 ```lua
 left = player:get 'left'
 ```
-`player:get` always returns a number between 0 and 1, and as such, it is most applicable to controls that act as axes, such as movement controls.
+`player:get` always returns a number between 0 and 1, and as such, it is most applicable to controls that act as axes, such as movement controls. To get the value of a control without applying the deadzone, use `player:getRaw`.
 
 #### Getting down, pressed, and released states
 To see whether a control is currently "held down", use:
@@ -110,7 +110,7 @@ These functions are most applicable for controls that act as buttons, such as a 
 #### Changing controls and deadzone
 At any time, you can change the controls for a player by calling:
 ```lua
-player:setControl(controls)
+player:changeControls(controls)
 ```
 Just pass in a new table of controls, and the player will seamlessly update to use the new controls.
 
@@ -118,8 +118,12 @@ You can also change the deadzone of the player by setting `player.deadzone` to a
 
 If you need to access or change the joystick associated with a player, use `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
 
-#### Detecting the last used input device
-You can use the property `player.lastUsed` to see which input device was last used for the player. It will either be `'keyboard'`, `'joystick'`, or `'mouse'` (or `nil` if no inputs have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
+#### Getting the active input device
+At any time, only the keyboard/mouse sources or the gamepad sources will be active. A device will be considered active if any of the sources for that device exceed the deadzone. The keyboard and mouse will always take precedence over the gamepad.
+
+You can call `player:getActiveDevice()` to see which input device is currently active. It will either be `'keyboard'` or `'joystick'` (or `nil` if no inputs have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
+
+*Note:* mouse sources are counted under `keyboard`.
 
 Contributing
 ============
