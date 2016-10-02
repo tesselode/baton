@@ -27,15 +27,6 @@ local baton = {
   ]]
 }
 
-local function any(t, f)
-  for _, v in pairs(t) do
-    if f(v) then
-      return true
-    end
-  end
-  return false
-end
-
 local sourceFunction = {}
 
 function sourceFunction.key(key)
@@ -126,18 +117,17 @@ function Player:changeControls(controls)
         downCurrent = false,
       }
     end
-    self._controls[name].sources = {keyboard = {}, joystick = {}}
-
+    local control = self._controls[name]
+    control.sources = {keyboard = {}, joystick = {}}
     for i = 1, #sources do
-      local source = sources[i]
-      local type, value = source:match '(.+):(.+)'
+      local type, value = sources[i]:match '(.+):(.+)'
+      local device
       if type == 'axis' or type == 'button' then
-        table.insert(self._controls[name].sources.joystick,
-          sourceFunction[type](value))
+        device = 'joystick'
       else
-        table.insert(self._controls[name].sources.keyboard,
-          sourceFunction[type](value))
+        device = 'keyboard'
       end
+      table.insert(control.sources[device], sourceFunction[type](value))
     end
   end
 end
@@ -174,13 +164,12 @@ function Player:getActiveDevice()
 end
 
 function baton.new(controls, joystick)
-  local player = {
+  local player = setmetatable({
     _controls = {},
     _active = nil,
     joystick = joystick,
     deadzone = .5,
-  }
-  setmetatable(player, {__index = Player})
+  }, {__index = Player})
   player:changeControls(controls)
   return player
 end
