@@ -86,25 +86,30 @@ end
 
 local Player = {}
 
-function Player:_determineActiveDevice()
-  if any(self._controls.keyboard, function(c) return c.active end) then
-    self._active = 'keyboard'
-  elseif any(self._controls.joystick, function(c) return c.active end) then
-    self._active = 'joystick'
+function Player:_getActiveDevice()
+  local function check(device)
+    for _, control in pairs(self._controls) do
+      for i = 1, #control.sources[device] do
+        local source = control.sources[device][i]
+        if source(self) > self.deadzone then
+          return true
+        end
+      end
+    end
   end
+  if check 'keyboard' then return 'keyboard' end
+  if check 'joystick' then return 'joystick' end
+  return false
 end
 
-function Player:_updateControls(controls)
-  for _, control in pairs(controls) do
-    control.active = false
+function Player:_updateControls()
+  if not self._active then return false end
+  for _, control in pairs(self._controls) do
     control.value = 0
-    for i = 1, #control.sources do
-      local source = control.sources[i]
-      local v = source(self)
-      if v > self.deadzone then
-        control.active = true
-      end
-      control.value = control.value + v
+    local sources = control.sources[self._active]
+    for i = 1, #sources do
+      local source = sources[i]
+      control.value = control.value + source(self)
     end
     if control.value > 1 then control.value = 1 end
     control.downPrevious = control.downCurrent
@@ -113,29 +118,24 @@ function Player:_updateControls(controls)
 end
 
 function Player:changeControls(controls)
-  local function initControl(t, k)
-    if not t[k] then
-      t[k] = {
-        active = false,
+  for name, sources in pairs(controls) do
+    if not self._controls[name] then
+      self._controls[name] = {
         value = 0,
         downPrevious = false,
         downCurrent = false,
       }
     end
-    t[k].sources = {}
-  end
+    self._controls[name].sources = {keyboard = {}, joystick = {}}
 
-  for name, sources in pairs(controls) do
-    initControl(self._controls.keyboard, name)
-    initControl(self._controls.joystick, name)
     for i = 1, #sources do
       local source = sources[i]
       local type, value = source:match '(.+):(.+)'
       if type == 'axis' or type == 'button' then
-        table.insert(self._controls.joystick[name].sources,
+        table.insert(self._controls[name].sources.joystick,
           sourceFunction[type](value))
       else
-        table.insert(self._controls.keyboard[name].sources,
+        table.insert(self._controls[name].sources.keyboard,
           sourceFunction[type](value))
       end
     end
@@ -143,19 +143,13 @@ function Player:changeControls(controls)
 end
 
 function Player:update()
-  self:_updateControls(self._controls.keyboard)
-  self:_updateControls(self._controls.joystick)
-  self:_determineActiveDevice()
+  local a = self:_getActiveDevice()
+  if a then self._active = a end
+  self:_updateControls()
 end
 
 function Player:getRaw(name)
-  if self._active == 'keyboard' then
-    return self._controls.keyboard[name].value
-  elseif self._active == 'joystick' then
-    return self._controls.joystick[name].value
-  else
-    return 0
-  end
+  return self._controls[name].value
 end
 
 function Player:get(name)
@@ -163,38 +157,16 @@ function Player:get(name)
   return v > self.deadzone and v or 0
 end
 
-function Player:down(name)
-  if self._active == 'keyboard' then
-    return self._controls.keyboard[name].downCurrent
-  elseif self._active == 'joystick' then
-    return self._controls.joystick[name].downCurrent
-  else
-    return false
-  end
-end
+function Player:down(name) return self._controls[name].downCurrent end
 
 function Player:pressed(name)
-  if self._active == 'keyboard' then
-    local c = self._controls.keyboard[name]
-    return c.downCurrent and not c.downPrevious
-  elseif self._active == 'joystick' then
-    local c = self._controls.joystick[name]
-    return c.downCurrent and not c.downPrevious
-  else
-    return false
-  end
+  local c = self._controls[name]
+  return c.downCurrent and not c.downPrevious
 end
 
 function Player:released(name)
-  if self._active == 'keyboard' then
-    local c = self._controls.keyboard[name]
-    return c.downPrevious and not c.downCurrent
-  elseif self._active == 'joystick' then
-    local c = self._controls.joystick[name]
-    return c.downPrevious and not c.downCurrent
-  else
-    return false
-  end
+  local c = self._controls[name]
+  return c.downPrevious and not c.downCurrent
 end
 
 function Player:getActiveDevice()
@@ -203,10 +175,8 @@ end
 
 function baton.new(controls, joystick)
   local player = {
-    _controls = {
-      keyboard = {},
-      joystick = {},
-    },
+    _controls = {},
+    _active = nil,
     joystick = joystick,
     deadzone = .5,
   }
