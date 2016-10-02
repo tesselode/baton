@@ -107,20 +107,27 @@ function Player:_updateControls(controls)
       control.value = control.value + v
     end
     if control.value > 1 then control.value = 1 end
+    control.downPrevious = control.downCurrent
+    control.downCurrent = control.value > self.deadzone
   end
 end
 
 function Player:changeControls(controls)
-  for name, sources in pairs(controls) do
-    if not self._controls.keyboard[name] then
-      self._controls.keyboard[name] = {active = false, value = 0}
+  local function initControl(t, k)
+    if not t[k] then
+      t[k] = {
+        active = false,
+        value = 0,
+        downPrevious = false,
+        downCurrent = false,
+      }
     end
-    self._controls.keyboard[name].sources = {}
-    if not self._controls.joystick[name] then
-      self._controls.joystick[name] = {active = false, value = 0}
-    end
-    self._controls.joystick[name].sources = {}
+    t[k].sources = {}
+  end
 
+  for name, sources in pairs(controls) do
+    initControl(self._controls.keyboard, name)
+    initControl(self._controls.joystick, name)
     for i = 1, #sources do
       local source = sources[i]
       local type, value = source:match '(.+):(.+)'
@@ -154,6 +161,40 @@ end
 function Player:get(name)
   local v = self:getRaw(name)
   return v > self.deadzone and v or 0
+end
+
+function Player:down(name)
+  if self._active == 'keyboard' then
+    return self._controls.keyboard[name].downCurrent
+  elseif self._active == 'joystick' then
+    return self._controls.joystick[name].downCurrent
+  else
+    return false
+  end
+end
+
+function Player:pressed(name)
+  if self._active == 'keyboard' then
+    local c = self._controls.keyboard[name]
+    return c.downCurrent and not c.downPrevious
+  elseif self._active == 'joystick' then
+    local c = self._controls.joystick[name]
+    return c.downCurrent and not c.downPrevious
+  else
+    return false
+  end
+end
+
+function Player:released(name)
+  if self._active == 'keyboard' then
+    local c = self._controls.keyboard[name]
+    return c.downPrevious and not c.downCurrent
+  elseif self._active == 'joystick' then
+    local c = self._controls.joystick[name]
+    return c.downPrevious and not c.downCurrent
+  else
+    return false
+  end
 end
 
 function Player:getActiveDevice()

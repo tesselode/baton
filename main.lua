@@ -12,14 +12,14 @@ input = baton.new(controls, love.joystick.getJoysticks()[1])
 
 function love.update(dt)
   input:update()
-  --for control in pairs(controls) do
-  --  if input:pressed(control) then
-  --    print(control, 'pressed')
-  --  end
-  --  if input:released(control) then
-  --    print(control, 'released')
-  --  end
-  --end
+  for control in pairs(controls) do
+    if input:pressed(control) then
+      print(control, 'pressed')
+    end
+    if input:released(control) then
+      print(control, 'released')
+    end
+  end
 end
 
 function love.draw()
