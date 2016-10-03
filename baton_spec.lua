@@ -57,7 +57,7 @@ _G.love = love
 
 describe('baton', function()
   it('detects keys', function()
-    local player = baton.newPlayer({ action = {'key:a'} })
+    local player = baton.new({ action = {'key:a'} })
 
     keys.a = true
     player:update()
@@ -69,7 +69,7 @@ describe('baton', function()
   end)
 
   it('detects scancodes', function()
-    local player = baton.newPlayer({ action = {'sc:a'} })
+    local player = baton.new({ action = {'sc:a'} })
 
     scancodes.a = true
     player:update()
@@ -82,7 +82,7 @@ describe('baton', function()
 
   it('detects gamepad buttons', function()
     local gamepad = newGamepad()
-    local player = baton.newPlayer({ action = {'button:a'} }, gamepad)
+    local player = baton.new({ action = {'button:a'} }, gamepad)
 
     gamepad.gpbuttons.a = true
     player:update()
@@ -95,7 +95,7 @@ describe('baton', function()
 
   it('detects joystick buttons', function()
     local gamepad = newGamepad()
-    local player = baton.newPlayer({ action = {'button:1'} }, gamepad)
+    local player = baton.new({ action = {'button:1'} }, gamepad)
 
     gamepad.gpbuttons[1] = true
     player:update()
@@ -108,7 +108,7 @@ describe('baton', function()
 
   it('detects gamepad axes', function()
     local gamepad = newGamepad()
-    local player = baton.newPlayer({
+    local player = baton.new({
       left = {'axis:leftx-'},
       right = {'axis:leftx+'}
     }, gamepad)
@@ -131,7 +131,7 @@ describe('baton', function()
 
   it('detects joystick axes', function()
     local gamepad = newGamepad()
-    local player = baton.newPlayer({
+    local player = baton.new({
       left = {'axis:1-'},
       right = {'axis:1+'}
     }, gamepad)
