@@ -1,36 +1,44 @@
 local baton = require 'baton'
 
 local controls = {
-  left = {'sc:left', 'axis:leftx-', 'button:dpleft', 'mouse:1'},
-  right = {'sc:right', 'axis:leftx+', 'button:dpright'},
-  up = {'sc:up', 'axis:lefty-', 'button:dpup'},
-  down = {'sc:down', 'axis:lefty+', 'button:dpdown'},
+  left = {'key:left', 'axis:leftx-', 'button:dpleft'},
+  right = {'key:right', 'axis:leftx+', 'button:dpright'},
+  up = {'key:up', 'axis:lefty-', 'button:dpup'},
+  down = {'key:down', 'axis:lefty+', 'button:dpdown'},
   primary = {'sc:x', 'button:a'},
   secondary = {'sc:z', 'button:x'},
 }
-
-local player1
-
-function love.load()
-  player1 = baton.newPlayer(controls, love.joystick.getJoysticks()[1])
-end
+input = baton.new(controls, love.joystick.getJoysticks()[1])
 
 function love.update(dt)
-  player1:update()
+  input:update()
   for control in pairs(controls) do
-    if player1:pressed(control) then
+    if input:pressed(control) then
       print(control, 'pressed')
     end
-    if player1:released(control) then
+    if input:released(control) then
       print(control, 'released')
     end
   end
 end
 
 function love.draw()
-  love.graphics.print(player1:get('left'), 0, 0)
-  love.graphics.print(tostring(player1:down('left')), 0, 12)
-  love.graphics.print(tostring(player1:pressed('left')), 0, 24)
-  love.graphics.print(tostring(player1:released('left')), 0, 36)
-  love.graphics.print(tostring(player1.lastUsed), 0, 48)
+  love.graphics.setColor(113, 194, 205)
+  local x, y = 400, 300
+  x = x + 200 * input:get 'right'
+  x = x - 200 * input:get 'left'
+  y = y + 200 * input:get 'down'
+  y = y - 200 * input:get 'up'
+  love.graphics.circle('fill', x, y, 8)
+
+  love.graphics.setColor(208, 133, 214)
+  local x, y = 400, 300
+  x = x + 200 * input:getRaw 'right'
+  x = x - 200 * input:getRaw 'left'
+  y = y + 200 * input:getRaw 'down'
+  y = y - 200 * input:getRaw 'up'
+  love.graphics.circle('fill', x, y, 8)
+
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.print(tostring(input:getActiveDevice()))
 end
