@@ -75,6 +75,14 @@ function sourceFunction.button(button)
   end
 end
 
+function sourceFunction.axispair(controls)
+  local up, down, left, right = controls:match '(.+),(.+),(.+),(.+)'
+  return function(self)
+    return self:getRaw(right) - self:getRaw(left),
+           self:getRaw(down) - self:getRaw(up)
+  end
+end
+
 local Player = {}
 
 function Player:_getActiveDevice()
@@ -96,33 +104,56 @@ end
 function Player:_updateControls()
   if not self._active then return false end
   for _, control in pairs(self._controls) do
-    control.value = 0
+    for i = 1, #control.values do
+      control.values[i] = 0
+    end
     local sources = control.sources[self._active]
     for i = 1, #sources do
       local source = sources[i]
-      control.value = control.value + source(self)
+      self:addSourceToValues(control.values, source)
     end
-    if control.value > 1 then control.value = 1 end
-    control.downPrevious = control.downCurrent
-    control.downCurrent = control.value > self.deadzone
   end
+  for _, control in pairs(self._controls) do
+    local sources = control.sources['aggregate']
+    for i = 1, #sources do
+      local source = sources[i]
+      self:addSourceToValues(control.values, source)
+    end
+  end
+  for _, control in pairs(self._controls) do
+    control.downPrevious = control.downCurrent
+    control.downCurrent = false
+    for i = 1, #control.values do
+      control.values[i] = math.min(1, math.max(control.values[i], -1))
+      control.downCurrent = control.downCurrent or math.abs(control.values[i]) > self.deadzone
+    end
+  end
+end
+
+function Player:addSourceToValues(current, source)
+  local a, b = source(self)
+  if a then current[1] = current[1] + a end
+  if b then current[2] = current[2] + b end
 end
 
 function Player:changeControls(controls)
   for name, sources in pairs(controls) do
     if not self._controls[name] then
       self._controls[name] = {
-        value = 0,
         downPrevious = false,
         downCurrent = false,
+        values = {0},
       }
     end
     local control = self._controls[name]
-    control.sources = {keyboard = {}, joystick = {}}
+    control.sources = {keyboard = {}, joystick = {}, aggregate = {}}
     for i = 1, #sources do
       local type, value = sources[i]:match '(.+):(.+)'
       local device
-      if type == 'axis' or type == 'button' then
+      if type == 'axispair' then
+        device = 'aggregate'
+        control.values = {0, 0}
+      elseif type == 'axis' or type == 'button' then
         device = 'joystick'
       else
         device = 'keyboard'
@@ -139,12 +170,18 @@ function Player:update()
 end
 
 function Player:getRaw(name)
-  return self._controls[name].value
+  return unpack(self._controls[name].values)
 end
 
 function Player:get(name)
-  local v = self:getRaw(name)
-  return v > self.deadzone and v or 0
+  local a, b = self:getRaw(name)
+  a = math.abs(a) > self.deadzone and a or 0
+  if b then
+    b = math.abs(b) > self.deadzone and b or 0
+    return a, b
+  else
+    return a
+  end
 end
 
 function Player:down(name) return self._controls[name].downCurrent end
