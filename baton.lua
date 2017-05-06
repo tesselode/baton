@@ -121,12 +121,11 @@ function Player:_updateControls()
     end
   end
   for _, control in pairs(self._controls) do
-    control.downPrevious = control.downCurrent
-    control.downCurrent = false
     for i = 1, #control.values do
       control.values[i] = math.min(1, math.max(control.values[i], -1))
-      control.downCurrent = control.downCurrent or math.abs(control.values[i]) > self.deadzone
     end
+    control.downPrevious = control.downCurrent
+    control.downCurrent = self:_isMagnitudeGreaterThanDeadzone(unpack(control.values))
   end
 end
 
@@ -140,9 +139,9 @@ function Player:changeControls(controls)
   for name, sources in pairs(controls) do
     if not self._controls[name] then
       self._controls[name] = {
+        values = {0},
         downPrevious = false,
         downCurrent = false,
-        values = {0},
       }
     end
     local control = self._controls[name]
@@ -175,13 +174,20 @@ end
 
 function Player:get(name)
   local a, b = self:getRaw(name)
-  a = math.abs(a) > self.deadzone and a or 0
-  if b then
-    b = math.abs(b) > self.deadzone and b or 0
+  if not self:_isMagnitudeGreaterThanDeadzone(a, b) then
+    a = 0
+    b = b and 0 or nil
+  end
+  if b ~= nil then
     return a, b
   else
     return a
   end
+end
+
+function Player:_isMagnitudeGreaterThanDeadzone(a, b)
+  if b == nil then b = 0 end
+  return self.deadzone < math.sqrt(a^2 + b^2)
 end
 
 function Player:down(name) return self._controls[name].downCurrent end
