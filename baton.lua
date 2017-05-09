@@ -176,7 +176,7 @@ function Player:get(name)
   local a, b = self:getRaw(name)
   if not self:_isMagnitudeGreaterThanDeadzone(a, b) then
     a = 0
-    b = b and 0 or nil
+    b = b ~= nil and 0 or nil
   end
   if b ~= nil then
     return a, b
