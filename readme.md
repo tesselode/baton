@@ -127,7 +127,7 @@ You can call `player:getActiveDevice()` to see which input device is currently a
 
 Contributing
 ============
-This is very early software, and the design is not set in stone. Feel free to take it for a spin and suggest additions and changes (especially if you try making a multiplayer game with it!). Issues and pull requests are always welcome. To run the tests, use [busted](https://olivinelabs.com/busted/).
+This is early software, and the design is not set in stone. Feel free to take it for a spin and suggest additions and changes (especially if you try making a multiplayer game with it!). Issues and pull requests are always welcome.
 
 License
 =======
