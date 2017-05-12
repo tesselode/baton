@@ -10,6 +10,7 @@ local controls = {
   right = {'key:right', 'axis:leftx+', 'button:dpright'},
   up = {'key:up', 'axis:lefty-', 'button:dpup'},
   down = {'key:down', 'axis:lefty+', 'button:dpdown'},
+  movement = {'axispair:up,down,left,right'},
   shoot = {'key:x', 'button:a'}
 }
 
@@ -17,10 +18,10 @@ local input = baton.new(controls, love.joystick.getJoysticks()[1])
 
 function love.update(dt)
   input:update()
-  local horizontal = input:get 'right' - input:get 'left'
-  local vertical = input:get 'down' - input:get 'up'
 
+  local horizontal, vertical = input:get 'movement'
   playerShip:move(horizontal, vertical)
+
   if input:pressed 'shoot' then
     playerShip:shoot()
   end

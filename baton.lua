@@ -75,6 +75,14 @@ function sourceFunction.button(button)
   end
 end
 
+function sourceFunction.axispair(controls)
+  local up, down, left, right = controls:match '(.+),(.+),(.+),(.+)'
+  return function(self)
+    return self:getRaw(right) - self:getRaw(left),
+           self:getRaw(down) - self:getRaw(up)
+  end
+end
+
 local Player = {}
 
 function Player:_getActiveDevice()
@@ -96,15 +104,29 @@ end
 function Player:_updateControls()
   if not self._active then return false end
   for _, control in pairs(self._controls) do
-    control.value = 0
-    local sources = control.sources[self._active]
-    for i = 1, #sources do
-      local source = sources[i]
-      control.value = control.value + source(self)
+    for i = 1, #control.values do
+      control.values[i] = 0
     end
-    if control.value > 1 then control.value = 1 end
+  end
+  self:_updateValuesForDevice(self._active)
+  self:_updateValuesForDevice('aggregate')
+  for _, control in pairs(self._controls) do
+    for i = 1, #control.values do
+      control.values[i] = math.min(1, math.max(control.values[i], -1))
+    end
     control.downPrevious = control.downCurrent
-    control.downCurrent = control.value > self.deadzone
+    control.downCurrent = self:_isMagnitudeGreaterThanDeadzone(unpack(control.values))
+  end
+end
+
+function Player:_updateValuesForDevice(deviceKey)
+  for _, control in pairs(self._controls) do
+    local sources = control.sources[deviceKey]
+    for i = 1, #sources do
+      local a, b = sources[i](self)
+      if a then control.values[1] = control.values[1] + a end
+      if b then control.values[2] = control.values[2] + b end
+    end
   end
 end
 
@@ -112,17 +134,20 @@ function Player:changeControls(controls)
   for name, sources in pairs(controls) do
     if not self._controls[name] then
       self._controls[name] = {
-        value = 0,
+        values = {0},
         downPrevious = false,
         downCurrent = false,
       }
     end
     local control = self._controls[name]
-    control.sources = {keyboard = {}, joystick = {}}
+    control.sources = {keyboard = {}, joystick = {}, aggregate = {}}
     for i = 1, #sources do
       local type, value = sources[i]:match '(.+):(.+)'
       local device
-      if type == 'axis' or type == 'button' then
+      if type == 'axispair' then
+        device = 'aggregate'
+        control.values = {0, 0}
+      elseif type == 'axis' or type == 'button' then
         device = 'joystick'
       else
         device = 'keyboard'
@@ -139,12 +164,25 @@ function Player:update()
 end
 
 function Player:getRaw(name)
-  return self._controls[name].value
+  return unpack(self._controls[name].values)
 end
 
 function Player:get(name)
-  local v = self:getRaw(name)
-  return v > self.deadzone and v or 0
+  local a, b = self:getRaw(name)
+  if not self:_isMagnitudeGreaterThanDeadzone(a, b) then
+    a = 0
+    b = b ~= nil and 0 or nil
+  end
+  if b ~= nil then
+    return a, b
+  else
+    return a
+  end
+end
+
+function Player:_isMagnitudeGreaterThanDeadzone(a, b)
+  if b == nil then b = 0 end
+  return self.deadzone < math.sqrt(a^2 + b^2)
 end
 
 function Player:down(name) return self._controls[name].downCurrent end
