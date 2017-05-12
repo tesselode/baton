@@ -107,19 +107,9 @@ function Player:_updateControls()
     for i = 1, #control.values do
       control.values[i] = 0
     end
-    local sources = control.sources[self._active]
-    for i = 1, #sources do
-      local source = sources[i]
-      self:addSourceToValues(control.values, source)
-    end
   end
-  for _, control in pairs(self._controls) do
-    local sources = control.sources['aggregate']
-    for i = 1, #sources do
-      local source = sources[i]
-      self:addSourceToValues(control.values, source)
-    end
-  end
+  self:_updateValuesForDevice(self._active)
+  self:_updateValuesForDevice('aggregate')
   for _, control in pairs(self._controls) do
     for i = 1, #control.values do
       control.values[i] = math.min(1, math.max(control.values[i], -1))
@@ -129,10 +119,15 @@ function Player:_updateControls()
   end
 end
 
-function Player:addSourceToValues(current, source)
-  local a, b = source(self)
-  if a then current[1] = current[1] + a end
-  if b then current[2] = current[2] + b end
+function Player:_updateValuesForDevice(deviceKey)
+  for _, control in pairs(self._controls) do
+    local sources = control.sources[deviceKey]
+    for i = 1, #sources do
+      local a, b = sources[i](self)
+      if a then control.values[1] = control.values[1] + a end
+      if b then control.values[2] = control.values[2] + b end
+    end
+  end
 end
 
 function Player:changeControls(controls)
