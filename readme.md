@@ -60,7 +60,7 @@ Here are the different input types and the sources that can be associated with t
 | `mouse` | A mouse button.              | A number representing a mouse button (see [love.mouse.isDown](https://love2d.org/wiki/love.mouse.isDown))                                                               |
 | `axis`  | A joystick or gamepad axis.  | Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis). Add a '+' or '-' on the end to denote the direction to detect.|
 | `button`| A joystick or gamepad button.| Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)                                                           |
-
+| `hat`   | A joystick hat. | A number representing a joystick hat and a [JoystickHat](https://love2d.org/wiki/JoystickHat). For example '1r' corresponds to the 1st hat pushed right. |
 ### Players
 **Players** are the objects that monitor and manage inputs.
 
