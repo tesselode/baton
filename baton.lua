@@ -194,7 +194,6 @@ function Player:get(name)
       end
     end
   else
-    love.event.quit()
     local v = self:getRaw(name)
     return v > self.deadzone and v or 0
   end
