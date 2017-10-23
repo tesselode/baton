@@ -137,7 +137,12 @@ function Player:_updateAxisPairs()
       p.x, p.y = p.x / l, p.y / l
     end
     p.downPrevious = p.downCurrent
-    p.downCurrent = l > self.deadzone
+    if self.squareDeadzone then
+      p.downCurrent = math.abs(p.x) > self.deadzone
+                   or math.abs(p.y) > self.deadzone
+    else
+      p.downCurrent = l > self.deadzone
+    end
   end
 end
 
