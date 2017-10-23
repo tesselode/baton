@@ -1,44 +1,90 @@
 local baton = require 'baton'
 
-local controls = {
-  left = {'key:left', 'axis:leftx-', 'button:dpleft'},
-  right = {'key:right', 'axis:leftx+', 'button:dpright'},
-  up = {'key:up', 'axis:lefty-', 'button:dpup'},
-  down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-  primary = {'sc:x', 'button:a'},
-  secondary = {'sc:z', 'button:x'},
+local player = baton.new {
+  controls = {
+    left = {'key:left', 'axis:leftx-', 'button:dpleft'},
+    right = {'key:right', 'axis:leftx+', 'button:dpright'},
+    up = {'key:up', 'axis:lefty-', 'button:dpup'},
+    down = {'key:down', 'axis:lefty+', 'button:dpdown'},
+    action = {'key:x', 'button:a', 'mouse:1'},
+  },
+  pairs = {
+    move = {'left', 'right', 'up', 'down'}
+  },
+  joystick = love.joystick.getJoysticks()[1],
 }
-input = baton.new(controls, love.joystick.getJoysticks()[1])
+player.deadzone = .33
+player.squareDeadzone = false
+
+local pairDisplayAlpha = 0
+local pairDisplayTargetAlpha = 0
+local buttonDisplayAlpha = 0
+local buttonDisplayTargetAlpha = 0
 
 function love.update(dt)
-  input:update()
-  for control in pairs(controls) do
-    if input:pressed(control) then
-      print(control, 'pressed')
-    end
-    if input:released(control) then
-      print(control, 'released')
-    end
+  player:update()
+
+  pairDisplayTargetAlpha = player:pressed 'move' and 255
+                          or player:released 'move' and 255
+                          or player:down 'move' and 100
+                          or 0
+  if pairDisplayAlpha > pairDisplayTargetAlpha then
+    pairDisplayAlpha = pairDisplayAlpha - 1000 * dt
+  end
+  if pairDisplayAlpha < pairDisplayTargetAlpha then
+    pairDisplayAlpha = pairDisplayTargetAlpha
+  end
+
+  buttonDisplayTargetAlpha = player:pressed 'action' and 255
+                          or player:released 'action' and 255
+                          or player:down 'action' and 100
+                          or 0
+  if buttonDisplayAlpha > buttonDisplayTargetAlpha then
+    buttonDisplayAlpha = buttonDisplayAlpha - 1000 * dt
+  end
+  if buttonDisplayAlpha < buttonDisplayTargetAlpha then
+    buttonDisplayAlpha = buttonDisplayTargetAlpha
   end
 end
 
-function love.draw()
-  love.graphics.setColor(113, 194, 205)
-  local x, y = 400, 300
-  x = x + 200 * input:get 'right'
-  x = x - 200 * input:get 'left'
-  y = y + 200 * input:get 'down'
-  y = y - 200 * input:get 'up'
-  love.graphics.circle('fill', x, y, 8)
+function love.keypressed(key)
+  if key == 'escape' then
+    love.event.quit()
+  end
+end
 
-  love.graphics.setColor(208, 133, 214)
-  local x, y = 400, 300
-  x = x + 200 * input:getRaw 'right'
-  x = x - 200 * input:getRaw 'left'
-  y = y + 200 * input:getRaw 'down'
-  y = y - 200 * input:getRaw 'up'
-  love.graphics.circle('fill', x, y, 8)
+local pairDisplayRadius = 128
+
+function love.draw()
+  love.graphics.push()
+  love.graphics.translate(400, 300)
+
+  love.graphics.setColor(50, 50, 50, pairDisplayAlpha)
+  love.graphics.circle('fill', 0, 0, pairDisplayRadius)
 
   love.graphics.setColor(255, 255, 255)
-  love.graphics.print(tostring(input:getActiveDevice()))
+  love.graphics.circle('line', 0, 0, pairDisplayRadius)
+
+  local r = pairDisplayRadius * player.deadzone
+  if player.squareDeadzone then
+    love.graphics.rectangle('line', -r, -r, r*2, r*2)
+  else
+    love.graphics.circle('line', 0, 0, r)
+  end
+
+  love.graphics.setColor(150, 150, 150)
+  local x, y = player:getRaw 'move'
+  love.graphics.circle('fill', x*pairDisplayRadius,
+    y*pairDisplayRadius, 4)
+  love.graphics.setColor(255, 255, 255)
+  local x, y = player:get 'move'
+  love.graphics.circle('fill', x*pairDisplayRadius,
+    y*pairDisplayRadius, 4)
+
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.rectangle('line', -50, 150, 100, 100)
+  love.graphics.setColor(255, 255, 255, buttonDisplayAlpha)
+  love.graphics.rectangle('fill', -50, 150, 100, 100)
+
+  love.graphics.pop()
 end
