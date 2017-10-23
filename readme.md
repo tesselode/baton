@@ -1,42 +1,43 @@
-Baton
------
+# Baton
 **Baton** is an input library for LÖVE that bridges the gap between keyboard and gamepad controls and allows you to easily define and change controls on the fly.
 
 ```lua
 local baton = require 'baton'
 
-local controls = {
-  left = {'key:left', 'axis:leftx-', 'button:dpleft'},
-  right = {'key:right', 'axis:leftx+', 'button:dpright'},
-  up = {'key:up', 'axis:lefty-', 'button:dpup'},
-  down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-  shoot = {'key:x', 'button:a'}
+local input = baton.new {
+  controls = {
+    left = {'key:left', 'axis:leftx-', 'button:dpleft'},
+    right = {'key:right', 'axis:leftx+', 'button:dpright'},
+    up = {'key:up', 'axis:lefty-', 'button:dpup'},
+    down = {'key:down', 'axis:lefty+', 'button:dpdown'},
+    action = {'key:x', 'button:a'},
+  },
+  pairs = {
+    move = {'left', 'right', 'up', 'down'}
+  },
+  joystick = love.joystick.getJoysticks()[1],
 }
-
-local input = baton.new(controls, love.joystick.getJoysticks()[1])
 
 function love.update(dt)
   input:update()
-  local horizontal = input:get 'right' - input:get 'left'
-  local vertical = input:get 'down' - input:get 'up'
 
-  playerShip:move(horizontal, vertical)
-  if input:pressed 'shoot' then
+  local x, y = input:get 'move'
+  playerShip:move(x*100, y*100)
+  if input:pressed 'action' then
     playerShip:shoot()
   end
 end
 ```
 
-Installation
-============
+## Installation
 To use Baton, place `baton.lua` in your project, and then add this code to your `main.lua`:
 ```lua
 baton = require 'baton' -- if your baton.lua is in the root directory
 baton = require 'path.to.baton' -- if it's in subfolders
 ```
 
-Usage
-=====
+## Usage
+
 ### Defining controls
 Controls are defined using a table. Each key should be the name of a control, and each value should be another table. This table contains strings defining what inputs should be mapped to the control. For example, this table
 ```lua
@@ -61,15 +62,28 @@ Here are the different input types and the sources that can be associated with t
 | `axis`  | A joystick or gamepad axis.  | Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis). Add a '+' or '-' on the end to denote the direction to detect.|
 | `button`| A joystick or gamepad button.| Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)                                                           |
 | `hat`   | A joystick hat. | A number representing a joystick hat and a [JoystickHat](https://love2d.org/wiki/JoystickHat). For example '1r' corresponds to the 1st hat pushed right. |
+
+### Defining axis pairs
+Baton allows you to define **axis pairs**, which group four controls under a single name. This is perfect for analog sticks, arrow keys, etc., as it allows you to get x and y components quickly.  Each pair is defined by a table with the names of the four controls (in the order left, right, up, down).
+```lua
+pairs = {
+  move = {'moveLeft', 'moveRight', 'moveUp', 'moveDown'},
+  aim = {'aimLeft', 'aimRight', 'aimUp', 'aimDown'},
+}
+```
+
 ### Players
 **Players** are the objects that monitor and manage inputs.
 
 #### Creating players
 To create a player, use `baton.new`:
 ```lua
-player = baton.new(controls, joystick)
+player = baton.new(options)
 ```
-`controls` is a table of controls, and `joystick` is a LÖVE joystick (returned from `love.joystick.getJoysticks`). The `joystick` argument is optional; if it's not specified, or if the joystick becomes unavailable later, the player object will just ignore controller inputs.
+`options` is a table containing the following values:
+- `controls` - a table of controls
+- `pairs` - a table of axis pairs (optional)
+- `joystick` - a LÖVE joystick (returned from `love.joystick.getJoysticks`). The `joystick` argument is optional; if it's not specified, or if the joystick becomes unavailable later, the player object will just ignore controller inputs.
 
 #### Updating players
 You should update each player each frame by calling this function:
@@ -78,7 +92,7 @@ player:update()
 ```
 
 #### Getting the value of controls
-To get the value of an input, use:
+To get the value of a control, use:
 ```lua
 value = player:get(control)
 ```
@@ -88,12 +102,19 @@ left = player:get 'left'
 ```
 `player:get` always returns a number between 0 and 1, and as such, it is most applicable to controls that act as axes, such as movement controls. To get the value of a control without applying the deadzone, use `player:getRaw`.
 
+#### Getting the value of axis pairs
+`player.get` can also get the x and y components of an axis pair.
+```lua
+x, y = player:get(pair)
+```
+In this case, `x` and `y` are numbers between -1 and 1. `player.getRaw` will return the value of axis pairs without deadzone applied.
+
 #### Getting down, pressed, and released states
 To see whether a control is currently "held down", use:
 ```lua
 down = player:down(control)
 ```
-`player:down` returns `true` if the values of the control is greater than the deadzone, and `false` if not.
+`player:down` returns `true` if the value of the control is greater than the deadzone, and `false` if not.
 
 ```lua
 pressed = player:pressed(control)
@@ -114,9 +135,9 @@ player:changeControls(controls)
 ```
 Just pass in a new table of controls, and the player will seamlessly update to use the new controls.
 
-You can also change the deadzone of the player by setting `player.deadzone` to a number between `0` and `1`. The deadzone is set to `0.5` by default.
+You can also change the deadzone of the player by setting `player.deadzone` to a number between `0` and `1`. The deadzone is set to `0.5` by default. If you set `player.squareDeadzone` to `true`, axis pairs will apply deadzone individually to each axis.
 
-If you need to access or change the joystick associated with a player, use `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
+If you need to access or change the joystick associated with a player, just set `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
 
 #### Getting the active input device
 At any time, only the keyboard/mouse sources or the gamepad sources will be active. A device will be considered active if any of the sources for that device exceed the deadzone. The keyboard and mouse will always take precedence over the gamepad.
@@ -125,15 +146,13 @@ You can call `player:getActiveDevice()` to see which input device is currently a
 
 *Note:* mouse sources are counted under `keyboard`.
 
-Contributing
-============
-This is early software, and the design is not set in stone. Feel free to take it for a spin and suggest additions and changes (especially if you try making a multiplayer game with it!). Issues and pull requests are always welcome.
+## Contributing
+This library is still fairly young, so feel free to take it for a spin and suggest additions and changes (especially if you try making a multiplayer game with it!). Issues and pull requests are always welcome. To run the test, run `love .` in the baton folder.
 
-License
-=======
+## License
 MIT License
 
-Copyright (c) 2016 Andrew Minnich
+Copyright (c) 2017 Andrew Minnich
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

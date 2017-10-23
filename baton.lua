@@ -5,7 +5,7 @@ local baton = {
   _LICENSE = [[
     MIT License
 
-    Copyright (c) 2016 Andrew Minnich
+    Copyright (c) 2017 Andrew Minnich
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -89,6 +89,14 @@ end
 
 local Player = {}
 
+function Player:_getControlOrPair(name)
+  if self._axisPairs[name] then
+    return self._axisPairs[name]
+  else
+    return self._controls[name]
+  end
+end
+
 function Player:_getActiveDevice()
   local function check(device)
     for _, control in pairs(self._controls) do
@@ -100,9 +108,20 @@ function Player:_getActiveDevice()
       end
     end
   end
-  if check 'keyboard' then return 'keyboard' end
-  if check 'joystick' then return 'joystick' end
-  return false
+  if check 'joystick' then self._active = 'joystick' end
+  if check 'keyboard' then self._active = 'keyboard' end
+end
+
+function Player:_addPairs(axisPairs)
+  for name, controls in pairs(axisPairs) do
+    self._axisPairs[name] = {
+      controls = controls,
+      x = 0,
+      y = 0,
+      downCurrent = false,
+      downPrevious = false,
+    }
+  end
 end
 
 function Player:_updateControls()
@@ -117,6 +136,25 @@ function Player:_updateControls()
     if control.value > 1 then control.value = 1 end
     control.downPrevious = control.downCurrent
     control.downCurrent = control.value > self.deadzone
+  end
+end
+
+function Player:_updateAxisPairs()
+  for _, p in pairs(self._axisPairs) do
+    local c = p.controls
+    p.x, p.y = self:getRaw(c[2]) - self:getRaw(c[1]),
+      self:getRaw(c[4]) - self:getRaw(c[3])
+    local l = (p.x^2 + p.y^2) ^ .5
+    if l > 1 then
+      p.x, p.y = p.x / l, p.y / l
+    end
+    p.downPrevious = p.downCurrent
+    if self.squareDeadzone then
+      p.downCurrent = math.abs(p.x) > self.deadzone
+                   or math.abs(p.y) > self.deadzone
+    else
+      p.downCurrent = l > self.deadzone
+    end
   end
 end
 
@@ -145,29 +183,50 @@ function Player:changeControls(controls)
 end
 
 function Player:update()
-  local a = self:_getActiveDevice()
-  if a then self._active = a end
+  self:_getActiveDevice()
   self:_updateControls()
+  self:_updateAxisPairs()
 end
 
 function Player:getRaw(name)
-  return self._controls[name].value
+  if self._axisPairs[name] then
+    return self._axisPairs[name].x, self._axisPairs[name].y
+  else
+    return self._controls[name].value
+  end
 end
 
 function Player:get(name)
-  local v = self:getRaw(name)
-  return v > self.deadzone and v or 0
+  if self._axisPairs[name] then
+    local x, y = self:getRaw(name)
+    if self.squareDeadzone then
+      x = math.abs(x) > self.deadzone and x or 0
+      y = math.abs(y) > self.deadzone and y or 0
+      return x, y
+    else
+      if (x^2 + y^2) ^ .5 > self.deadzone then
+        return x, y
+      else
+        return 0, 0
+      end
+    end
+  else
+    local v = self:getRaw(name)
+    return v > self.deadzone and v or 0
+  end
 end
 
-function Player:down(name) return self._controls[name].downCurrent end
+function Player:down(name)
+  return self:_getControlOrPair(name).downCurrent
+end
 
 function Player:pressed(name)
-  local c = self._controls[name]
+  local c = self:_getControlOrPair(name)
   return c.downCurrent and not c.downPrevious
 end
 
 function Player:released(name)
-  local c = self._controls[name]
+  local c = self:_getControlOrPair(name)
   return c.downPrevious and not c.downCurrent
 end
 
@@ -175,14 +234,19 @@ function Player:getActiveDevice()
   return self._active
 end
 
-function baton.new(controls, joystick)
+function baton.new(options)
   local player = setmetatable({
     _controls = {},
+    _axisPairs = {},
     _active = nil,
-    joystick = joystick,
-    deadzone = .5,
+    joystick = options.joystick,
+    deadzone = options.deadzone or .5,
+    squareDeadzone = options.squareDeadzone,
   }, {__index = Player})
-  player:changeControls(controls)
+  player:changeControls(options.controls)
+  if options.pairs then
+    player:_addPairs(options.pairs)
+  end
   return player
 end
 
