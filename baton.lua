@@ -89,30 +89,19 @@ end
 
 local Player = {}
 
-function Player:_getControlOrPair(name)
-  if self._axisPairs[name] then
-    return self._axisPairs[name]
-  else
-    return self._controls[name]
-  end
-end
-
-function Player:_getActiveDevice()
-  local function check(device)
-    for _, control in pairs(self._controls) do
-      for i = 1, #control.sources[device] do
-        local source = control.sources[device][i]
-        if source(self) > self.deadzone then
-          return true
-        end
-      end
+function Player:_initControls()
+  for name, _ in pairs(self.controls) do
+    if not self._controls[name] then
+      self._controls[name] = {
+        value = 0,
+        downPrevious = false,
+        downCurrent = false,
+      }
     end
   end
-  if check 'joystick' then self._active = 'joystick' end
-  if check 'keyboard' then self._active = 'keyboard' end
 end
 
-function Player:_addPairs(axisPairs)
+function Player:_initPairs(axisPairs)
   for name, controls in pairs(axisPairs) do
     self._axisPairs[name] = {
       controls = controls,
@@ -124,14 +113,49 @@ function Player:_addPairs(axisPairs)
   end
 end
 
+function Player:_getSources(controlName)
+  local sources = {keyboard = {}, joystick = {}}
+  for _, source in ipairs(self.controls[controlName]) do
+    local type, value = source:match '(.+):(.+)'
+    local device = 'keyboard'
+    if type == 'axis' or type == 'button' then
+      device = 'joystick'
+    end
+    table.insert(sources[device], sourceFunction[type](value))
+  end
+  return sources
+end
+
+function Player:_getControlOrPair(name)
+  if self._axisPairs[name] then
+    return self._axisPairs[name]
+  else
+    return self._controls[name]
+  end
+end
+
+function Player:_getActiveDevice()
+  local function check(device)
+    for controlName, control in pairs(self._controls) do
+      local sources = self:_getSources(controlName)[device]
+      for i = 1, #sources do
+        if sources[i](self) > self.deadzone then
+          return true
+        end
+      end
+    end
+  end
+  if check 'joystick' then self._active = 'joystick' end
+  if check 'keyboard' then self._active = 'keyboard' end
+end
+
 function Player:_updateControls()
   if not self._active then return false end
-  for _, control in pairs(self._controls) do
+  for controlName, control in pairs(self._controls) do
     control.value = 0
-    local sources = control.sources[self._active]
+    local sources = self:_getSources(controlName)[self._active]
     for i = 1, #sources do
-      local source = sources[i]
-      control.value = control.value + source(self)
+      control.value = control.value + sources[i](self)
     end
     if control.value > 1 then control.value = 1 end
     control.downPrevious = control.downCurrent
@@ -154,30 +178,6 @@ function Player:_updateAxisPairs()
                    or math.abs(p.y) > self.deadzone
     else
       p.downCurrent = l > self.deadzone
-    end
-  end
-end
-
-function Player:changeControls(controls)
-  for name, sources in pairs(controls) do
-    if not self._controls[name] then
-      self._controls[name] = {
-        value = 0,
-        downPrevious = false,
-        downCurrent = false,
-      }
-    end
-    local control = self._controls[name]
-    control.sources = {keyboard = {}, joystick = {}}
-    for i = 1, #sources do
-      local type, value = sources[i]:match '(.+):(.+)'
-      local device
-      if type == 'axis' or type == 'button' then
-        device = 'joystick'
-      else
-        device = 'keyboard'
-      end
-      table.insert(control.sources[device], sourceFunction[type](value))
     end
   end
 end
@@ -239,13 +239,14 @@ function baton.new(options)
     _controls = {},
     _axisPairs = {},
     _active = nil,
+    controls = options.controls,
     joystick = options.joystick,
     deadzone = options.deadzone or .5,
     squareDeadzone = options.squareDeadzone,
   }, {__index = Player})
-  player:changeControls(options.controls)
+  player:_initControls()
   if options.pairs then
-    player:_addPairs(options.pairs)
+    player:_initPairs(options.pairs)
   end
   return player
 end
