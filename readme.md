@@ -39,7 +39,7 @@ baton = require 'path.to.baton' -- if it's in subfolders
 ## Usage
 
 ### Defining controls
-Controls are defined using a table. Each key should be the name of a control, and each value should be another table. This table contains strings defining what inputs should be mapped to the control. For example, this table
+Controls are defined using a table. Each key should be the name of a control, and each value should be another table. This table contains strings defining what sources should be mapped to the control. For example, this table
 ```lua
 controls = {
   left = {'key:left', 'axis:leftx-'}
@@ -48,7 +48,7 @@ controls = {
 ```
 will create a control called "left" that responds to the left arrow key and pushing the left analog stick on the controller to the left, and a control called "shoot" that responds to the X key on the keyboard and the A button on the gamepad.
 
-Inputs are strings with the following format:
+Sources are strings with the following format:
 ```lua
 '[input type]:[input source]'
 ```
@@ -107,7 +107,7 @@ left = player:get 'left'
 ```lua
 x, y = player:get(pair)
 ```
-In this case, `x` and `y` are numbers between -1 and 1. `player.getRaw` will return the value of axis pairs without deadzone applied.
+In this case, `x` and `y` are numbers between -1 and 1. The length of the vector x, y is capped to 1. `player.getRaw` will return the value of axis pairs without deadzone applied.
 
 #### Getting down, pressed, and released states
 To see whether a control is currently "held down", use:
@@ -128,23 +128,23 @@ released = player:released(control)
 
 These functions are most applicable for controls that act as buttons, such as a shoot button. That being said, they can be used for any control, which is useful if you want to, for example, use a movement control as a discrete button press to operate a menu.
 
-#### Changing controls and deadzone
-At any time, you can change the controls for a player by calling:
-```lua
-player:changeControls(controls)
-```
-Just pass in a new table of controls, and the player will seamlessly update to use the new controls.
+#### Changing controls
+At any time, you can change the sources for a player's controls by modifying the controls table, which can be accessed via `player.controls`.
 
-You can also change the deadzone of the player by setting `player.deadzone` to a number between `0` and `1`. The deadzone is set to `0.5` by default. If you set `player.squareDeadzone` to `true`, axis pairs will apply deadzone individually to each axis.
+**Note**: removing a control entirely (by running `player.controls.left = nil`, for example) will cause errors. If you want to disable a control, you can set it to an empty table, thus removing all of the sources. Also note that the player object cannot detect if new controls are added.
 
-If you need to access or change the joystick associated with a player, just set `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
+#### Changing the deadzone
+You can change the deadzone of a player by setting `player.deadzone` to a number between `0` and `1`. The deadzone is set to `0.5` by default. If you set `player.squareDeadzone` to `true`, axis pairs will apply deadzone individually to each axis.
+
+#### Reassigning joysticks
+If you need to change the joystick associated with a player, just set `player.joystick` (which is just a standard LÖVE [Joystick](https://love2d.org/wiki/Joystick) object).
 
 #### Getting the active input device
-At any time, only the keyboard/mouse sources or the gamepad sources will be active. A device will be considered active if any of the sources for that device exceed the deadzone. The keyboard and mouse will always take precedence over the gamepad.
+At any time, only the keyboard/mouse sources or the gamepad sources for a player will be active. A device will be considered active if any of the sources for that device exceed the deadzone. The keyboard and mouse will always take precedence over the gamepad.
 
-You can call `player:getActiveDevice()` to see which input device is currently active. It will either be `'keyboard'` or `'joystick'` (or `nil` if no inputs have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
+You can call `player:getActiveDevice()` to see which input device is currently active. It will return either `'keyboard'` or `'joystick'` (or `nil` if no sources have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
 
-*Note:* mouse sources are counted under `keyboard`.
+**Note:** mouse sources are counted under `keyboard`.
 
 ## Contributing
 This library is still fairly young, so feel free to take it for a spin and suggest additions and changes (especially if you try making a multiplayer game with it!). Issues and pull requests are always welcome. To run the test, run `love .` in the baton folder.
