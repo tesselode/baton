@@ -78,7 +78,7 @@ end
 function sourceFunction.hat(hat)
     return function(self)
         if self.joystick then
-            index, direction = hat:match('(%d)(.+)')
+            local index, direction = hat:match('(%d)(.+)')
             if self.joystick:getHat(index) == direction then
                 return 1
             end
@@ -136,7 +136,7 @@ end
 
 function Player:_getActiveDevice()
   local function check(device)
-    for controlName, control in pairs(self._controls) do
+    for controlName, _ in pairs(self._controls) do
       local sources = self:_getSources(controlName)[device]
       for i = 1, #sources do
         if sources[i](self) > self.deadzone then
