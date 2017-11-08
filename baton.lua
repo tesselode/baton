@@ -78,7 +78,7 @@ end
 function sourceFunction.hat(hat)
     return function(self)
         if self.joystick then
-            index, direction = hat:match('(%d)(.+)')
+            local index, direction = hat:match('(%d)(.+)')
             if self.joystick:getHat(index) == direction then
                 return 1
             end
