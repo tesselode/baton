@@ -136,7 +136,7 @@ end
 
 function Player:_getActiveDevice()
   local function check(device)
-    for controlName, control in pairs(self._controls) do
+    for controlName, _ in pairs(self._controls) do
       local sources = self:_getSources(controlName)[device]
       for i = 1, #sources do
         if sources[i](self) > self.deadzone then
