@@ -21,7 +21,12 @@ local pairDisplayTargetAlpha = 0
 local buttonDisplayAlpha = 0
 local buttonDisplayTargetAlpha = 0
 
+local updates = 0
+local updateTime = 0
+
 function love.update(dt)
+  local time = love.timer.getTime()
+  
   player:update()
 
   pairDisplayTargetAlpha = player:pressed 'move' and 255
@@ -45,17 +50,28 @@ function love.update(dt)
   if buttonDisplayAlpha < buttonDisplayTargetAlpha then
     buttonDisplayAlpha = buttonDisplayTargetAlpha
   end
+
+  updateTime = updateTime + (love.timer.getTime() - time)
+  updates = updates + 1
 end
 
 function love.keypressed(key)
   if key == 'escape' then
     love.event.quit()
   end
+  if key == 'tab' then
+    player.controls.action[1] = 'key:z'
+  end
 end
 
 local pairDisplayRadius = 128
 
 function love.draw()
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.print('Current active device: ' .. tostring(player:getActiveDevice()))
+  love.graphics.print('Average update time (us): ' .. math.floor(updateTime/updates*1000000), 0, 16)
+  love.graphics.print('Memory usage (kb): ' .. math.floor(collectgarbage 'count'), 0, 32)
+
   love.graphics.push()
   love.graphics.translate(400, 300)
 
