@@ -29,60 +29,48 @@ local baton = {
 
 local source = {}
 
-function source.key(key)
-  return function(self)
-    return love.keyboard.isDown(key) and 1 or 0
-  end
+function source:key(key)
+  return love.keyboard.isDown(key) and 1 or 0
 end
 
-function source.sc(sc)
-  return function(self)
-    return love.keyboard.isScancodeDown(sc) and 1 or 0
-  end
+function source:sc(sc)
+  return love.keyboard.isScancodeDown(sc) and 1 or 0
 end
 
-function source.mouse(button)
-  return function()
-    return love.mouse.isDown(tonumber(button)) and 1 or 0
-  end
+function source:mouse(button)
+  return love.mouse.isDown(tonumber(button)) and 1 or 0
 end
 
-function source.axis(value)
-  local axis, direction = value:match '(.+)([%+%-])'
-  return function(self)
-    if self.joystick then
-      local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
-                                or self.joystick:getGamepadAxis(axis)
-      if direction == '-' then v = -v end
-      return v > 0 and v or 0
+function source:axis(value)
+  if self.joystick then
+    local axis, direction = value:match '(.+)([%+%-])'
+    local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
+                              or self.joystick:getGamepadAxis(axis)
+    if direction == '-' then v = -v end
+    return v > 0 and v or 0
+  end
+  return 0
+end
+
+function source:button(button)
+  if self.joystick then
+    if tonumber(button) then
+      return self.joystick:isDown(tonumber(button)) and 1 or 0
+    else
+      return self.joystick:isGamepadDown(button) and 1 or 0
     end
-    return 0
   end
+  return 0
 end
 
-function source.button(button)
-  return function(self)
-    if self.joystick then
-      if tonumber(button) then
-        return self.joystick:isDown(tonumber(button)) and 1 or 0
-      else
-        return self.joystick:isGamepadDown(button) and 1 or 0
+function source:hat(value)
+  if self.joystick then
+      local hat, direction = value:match('(%d)(.+)')
+      if self.joystick:getHat(hat) == direction then
+          return 1
       end
-    end
-    return 0
   end
-end
-
-function source.hat(value)
-  return function(self)
-    if self.joystick then
-        local hat, direction = value:match('(%d)(.+)')
-        if self.joystick:getHat(hat) == direction then
-            return 1
-        end
-    end
-    return 0
-  end
+  return 0
 end
 
 local Player = {}
@@ -99,10 +87,10 @@ function Player:update()
       local kv, jv = 0, 0
       local type, value = s:match '(.+):(.+)'
       if type == 'key' or type == 'sc' or type == 'mouse' then
-        kv = kv + source[type](value)(self)
+        kv = kv + source[type](self, value)
       elseif type == 'axis' or type == 'button' or type == 'hat' then
         if not keyboardUsed then
-          jv = jv + source[type](value)(self)
+          jv = jv + source[type](self, value)
         end
       end
       if kv > 0 then
