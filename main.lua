@@ -6,7 +6,7 @@ local player = baton.new {
     right = {'key:right', 'axis:leftx+', 'button:dpright'},
     up = {'key:up', 'axis:lefty-', 'button:dpup'},
     down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-    action = {'key:x', 'button:a', 'mouse:1'},
+    action = {'key:x', 'button:a'},
   },
   pairs = {
     move = {'left', 'right', 'up', 'down'}
@@ -14,7 +14,7 @@ local player = baton.new {
   joystick = love.joystick.getJoysticks()[1],
 }
 player.deadzone = .33
-player.squareDeadzone = false
+player.squareDeadzone = true
 
 local pairDisplayAlpha = 0
 local pairDisplayTargetAlpha = 0
@@ -50,6 +50,9 @@ end
 function love.keypressed(key)
   if key == 'escape' then
     love.event.quit()
+  end
+  if key == 'tab' then
+    player.controls.action[1] = 'key:z'
   end
 end
 
