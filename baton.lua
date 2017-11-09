@@ -106,9 +106,6 @@ function Player:update()
       end
     end
 
-    -- limit to 1
-    if control.rawValue > 1 then control.rawValue = 1 end
-
     -- deadzone
     control.value = 0
     if control.rawValue >= self.deadzone then
