@@ -208,6 +208,8 @@ function Player:getActiveDevice()
 end
 
 function baton.new(config)
+  assert(config.controls, 'The config table should provide a controls table.')
+  assert(config.pairs,    'The config table should provide a pairs table.'   )
   local player = setmetatable({
     _controls = {},
     _pairs = {},
