@@ -6,7 +6,7 @@ local player = baton.new {
     right = {'key:right', 'axis:leftx+', 'button:dpright'},
     up = {'key:up', 'axis:lefty-', 'button:dpup'},
     down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-    action = {'key:x', 'button:a'},
+    action = {'key:x', 'button:a', 'mouse:1'},
   },
   pairs = {
     move = {'left', 'right', 'up', 'down'}
@@ -14,7 +14,7 @@ local player = baton.new {
   joystick = love.joystick.getJoysticks()[1],
 }
 player.deadzone = .33
-player.squareDeadzone = true
+player.squareDeadzone = false
 
 local pairDisplayAlpha = 0
 local pairDisplayTargetAlpha = 0
@@ -59,6 +59,9 @@ end
 local pairDisplayRadius = 128
 
 function love.draw()
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.print(tostring(player:getActiveDevice()))
+
   love.graphics.push()
   love.graphics.translate(400, 300)
 
