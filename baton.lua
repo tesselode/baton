@@ -27,21 +27,23 @@ local baton = {
   ]]
 }
 
-local source = {}
+local keyboardSource = {}
 
-function source:key(key)
+function keyboardSource:key(key)
   return love.keyboard.isDown(key) and 1 or 0
 end
 
-function source:sc(sc)
+function keyboardSource:sc(sc)
   return love.keyboard.isScancodeDown(sc) and 1 or 0
 end
 
-function source:mouse(button)
+function keyboardSource:mouse(button)
   return love.mouse.isDown(tonumber(button)) and 1 or 0
 end
 
-function source:axis(value)
+local joystickSource = {}
+
+function joystickSource:axis(value)
   if self.joystick then
     local axis, direction = value:match '(.+)([%+%-])'
     local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
@@ -52,7 +54,7 @@ function source:axis(value)
   return 0
 end
 
-function source:button(button)
+function joystickSource:button(button)
   if self.joystick then
     if tonumber(button) then
       return self.joystick:isDown(tonumber(button)) and 1 or 0
@@ -63,7 +65,7 @@ function source:button(button)
   return 0
 end
 
-function source:hat(value)
+function joystickSource:hat(value)
   if self.joystick then
       local hat, direction = value:match('(%d)(.+)')
       if self.joystick:getHat(hat) == direction then
@@ -81,24 +83,26 @@ function Player:update()
 
   -- update controls
   for controlName, control in pairs(self._controls) do
-    -- add up sources
+    -- get raw value
     control.rawValue = 0
     for _, s in ipairs(self.controls[controlName]) do
-      local kv, jv = 0, 0
       local type, value = s:match '(.+):(.+)'
-      if type == 'key' or type == 'sc' or type == 'mouse' then
-        kv = kv + source[type](self, value)
-      elseif type == 'axis' or type == 'button' or type == 'hat' then
-        if not keyboardUsed then
-          jv = jv + source[type](self, value)
+      if keyboardSource[type] then
+        if keyboardSource[type](self, value) == 1 then
+          control.rawValue = 1
+          keyboardUsed = true
+          break
         end
-      end
-      if kv > 0 then
-        control.rawValue = kv
-        keyboardUsed = true
-      elseif jv > 0 then
-        control.rawValue = jv
-        if jv > self.deadzone then joystickUsed = true end
+      elseif joystickSource[type] then
+        local v = joystickSource[type](self, value)
+        if v > 0 then
+          joystickUsed = true
+          control.rawValue = control.rawValue + v
+          if control.rawValue >= 1 then
+            control.rawValue = 1
+            break
+          end
+        end
       end
     end
 
