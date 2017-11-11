@@ -208,6 +208,7 @@ function Player:getActiveDevice()
 end
 
 function baton.new(config)
+  assert(config.controls, 'no controls defined')
   local player = setmetatable({
     _controls = {},
     _pairs = {},
@@ -227,17 +228,19 @@ function baton.new(config)
       released = false,
     }
   end
-  for pairName, _ in pairs(config.pairs) do
-    player._pairs[pairName] = {
-      rawX = 0,
-      rawY = 0,
-      x = 0,
-      y = 0,
-      downPrevious = false,
-      down = false,
-      pressed = false,
-      released = false,
-    }
+  if config.pairs then
+    for pairName, _ in pairs(config.pairs) do
+      player._pairs[pairName] = {
+        rawX = 0,
+        rawY = 0,
+        x = 0,
+        y = 0,
+        downPrevious = false,
+        down = false,
+        pressed = false,
+        released = false,
+      }
+    end
   end
   return player
 end
