@@ -210,7 +210,7 @@ end
 function baton.new(config)
   assert(config.controls, 'no controls defined')
   local player = setmetatable({
-    _controls = {},
+    _controls = setmetatable({}, {__index = function(t, k) error("No control with name '"..k.."' defined!") end}),
     _pairs = {},
     controls = config.controls,
     pairs = config.pairs,
