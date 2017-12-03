@@ -163,11 +163,20 @@ function Player:update()
   end
 end
 
+-- check if a control is bound, then return it. Raise error if it's not bound
+local function getCheckedControl(controls, name)
+  local control = controls[name]
+  if not control then
+    error("No control with name '"..name.."' defined!")
+  end
+  return control
+end
+
 function Player:getRaw(name)
   if self._pairs[name] then
     return self._pairs[name].rawX, self._pairs[name].rawY
   else
-    return self._controls[name].rawValue
+    return getCheckedControl(self._controls, name).rawValue
   end
 end
 
@@ -175,7 +184,7 @@ function Player:get(name)
   if self._pairs[name] then
     return self._pairs[name].x, self._pairs[name].y
   else
-    return self._controls[name].value
+    return getCheckedControl(self._controls, name).value
   end
 end
 
@@ -183,7 +192,7 @@ function Player:down(name)
   if self._pairs[name] then
     return self._pairs[name].down
   else
-    return self._controls[name].down
+    return getCheckedControl(self._controls, name).down
   end
 end
 
@@ -191,7 +200,7 @@ function Player:pressed(name)
   if self._pairs[name] then
     return self._pairs[name].pressed
   else
-    return self._controls[name].pressed
+    return getCheckedControl(self._controls, name).pressed
   end
 end
 
@@ -199,7 +208,7 @@ function Player:released(name)
   if self._pairs[name] then
     return self._pairs[name].released
   else
-    return self._controls[name].released
+    return getCheckedControl(self._controls, name).released
   end
 end
 
@@ -210,7 +219,7 @@ end
 function baton.new(config)
   assert(config.controls, 'no controls defined')
   local player = setmetatable({
-    _controls = setmetatable({}, {__index = function(t, k) error("No control with name '"..k.."' defined!") end}),
+    _controls = {},
     _pairs = {},
     controls = config.controls,
     pairs = config.pairs,
