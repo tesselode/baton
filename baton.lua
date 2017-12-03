@@ -165,11 +165,7 @@ end
 
 -- check if a control is bound, then return it. Raise error if it's not bound
 local function getCheckedControl(controls, name)
-  local control = controls[name]
-  if not control then
-    error("No control with name '"..name.."' defined!")
-  end
-  return control
+  return controls[name] or error("No control with name '"..name.."' defined!")
 end
 
 function Player:getRaw(name)
