@@ -162,33 +162,33 @@ end
 
 function Player:getRaw(name)
   if self._pairs[name] then
-    return self._pairs[name].rawX, self._pairs[name].rawY
+    return self._pairs[name].rawX or 0, self._pairs[name].rawY or 0
   else
-    return getCheckedControl(self._controls, name).rawValue
+    return getCheckedControl(self._controls, name).rawValue or 0
   end
 end
 
 function Player:get(name)
   if self._pairs[name] then
-    return self._pairs[name].x, self._pairs[name].y
+    return self._pairs[name].x or 0, self._pairs[name].y or 0
   else
-    return getCheckedControl(self._controls, name).value
+    return getCheckedControl(self._controls, name).value or 0
   end
 end
 
 function Player:down(name)
   local control = self._pairs[name] or getCheckedControl(self._controls, name)
-  return control.down
+  return control.down or false
 end
 
 function Player:pressed(name)
   local control = self._pairs[name] or getCheckedControl(self._controls, name)
-  return control.pressed
+  return control.pressed or false
 end
 
 function Player:released(name)
   local control = self._pairs[name] or getCheckedControl(self._controls, name)
-  return control.released
+  return control.released or false
 end
 
 function Player:getActiveDevice()
@@ -207,27 +207,11 @@ function baton.new(config)
     squareDeadzone = false,
   }, {__index = Player})
   for controlName, _ in pairs(config.controls) do
-    player._controls[controlName] = {
-      rawValue = 0,
-      value = 0,
-      downPrevious = false,
-      down = false,
-      pressed = false,
-      released = false,
-    }
+    player._controls[controlName] = {}
   end
   if config.pairs then
     for pairName, _ in pairs(config.pairs) do
-      player._pairs[pairName] = {
-        rawX = 0,
-        rawY = 0,
-        x = 0,
-        y = 0,
-        downPrevious = false,
-        down = false,
-        pressed = false,
-        released = false,
-      }
+      player._pairs[pairName] = {}
     end
   end
   return player
