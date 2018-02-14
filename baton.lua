@@ -177,27 +177,18 @@ function Player:get(name)
 end
 
 function Player:down(name)
-  if self._pairs[name] then
-    return self._pairs[name].down
-  else
-    return getCheckedControl(self._controls, name).down
-  end
+  local control = self._pairs[name] or getCheckedControl(self._controls, name)
+  return control.down
 end
 
 function Player:pressed(name)
-  if self._pairs[name] then
-    return self._pairs[name].pressed
-  else
-    return getCheckedControl(self._controls, name).pressed
-  end
+  local control = self._pairs[name] or getCheckedControl(self._controls, name)
+  return control.pressed
 end
 
 function Player:released(name)
-  if self._pairs[name] then
-    return self._pairs[name].released
-  else
-    return getCheckedControl(self._controls, name).released
-  end
+  local control = self._pairs[name] or getCheckedControl(self._controls, name)
+  return control.released
 end
 
 function Player:getActiveDevice()
