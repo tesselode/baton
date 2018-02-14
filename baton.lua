@@ -119,10 +119,10 @@ function Player:update()
   -- update pairs
   for pairName, pair in pairs(self._pairs) do
     local p = self.pairs[pairName]
-    
+
     -- raw value
-    pair.rawX, pair.rawY = self._controls[p[2]].rawValue - self._controls[p[1]].rawValue,
-      self._controls[p[4]].rawValue - self._controls[p[3]].rawValue
+    pair.rawX = self._controls[p[2]].rawValue - self._controls[p[1]].rawValue
+    pair.rawY = self._controls[p[4]].rawValue - self._controls[p[3]].rawValue
 
     -- limit to 1
     local len = (pair.rawX^2 + pair.rawY^2) ^ .5
