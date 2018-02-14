@@ -197,6 +197,7 @@ end
 
 function baton.new(config)
   if not config.controls then error('No controls defined', 2) end
+
   local player = setmetatable({
     _controls = {},
     _pairs = {},
@@ -206,14 +207,17 @@ function baton.new(config)
     deadzone = .5,
     squareDeadzone = false,
   }, {__index = Player})
+
   for controlName, _ in pairs(config.controls) do
     player._controls[controlName] = {}
   end
+
   if config.pairs then
     for pairName, _ in pairs(config.pairs) do
       player._pairs[pairName] = {}
     end
   end
+
   return player
 end
 
