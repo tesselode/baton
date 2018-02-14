@@ -157,7 +157,7 @@ end
 
 -- check if a control is bound, then return it. Raise error if it's not bound
 local function getCheckedControl(controls, name)
-  return controls[name] or error("No control with name '"..name.."' defined!")
+  return controls[name] or error('No control with name "'..name..'" defined', 3)
 end
 
 function Player:getRaw(name)
@@ -196,7 +196,7 @@ function Player:getActiveDevice()
 end
 
 function baton.new(config)
-  assert(config.controls, 'no controls defined')
+  if not config.controls then error('No controls defined', 2) end
   local player = setmetatable({
     _controls = {},
     _pairs = {},
