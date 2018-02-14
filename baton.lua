@@ -44,33 +44,25 @@ end
 local joystickSource = {}
 
 function joystickSource:axis(value)
-  if self.joystick then
-    local axis, direction = value:match '(.+)([%+%-])'
-    local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
-                              or self.joystick:getGamepadAxis(axis)
-    if direction == '-' then v = -v end
-    return v > 0 and v or 0
-  end
-  return 0
+  local axis, direction = value:match '(.+)([%+%-])'
+  local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
+                            or self.joystick:getGamepadAxis(axis)
+  if direction == '-' then v = -v end
+  return v > 0 and v or 0
 end
 
 function joystickSource:button(button)
-  if self.joystick then
-    if tonumber(button) then
-      return self.joystick:isDown(tonumber(button)) and 1 or 0
-    else
-      return self.joystick:isGamepadDown(button) and 1 or 0
-    end
+  if tonumber(button) then
+    return self.joystick:isDown(tonumber(button)) and 1 or 0
+  else
+    return self.joystick:isGamepadDown(button) and 1 or 0
   end
-  return 0
 end
 
 function joystickSource:hat(value)
-  if self.joystick then
-      local hat, direction = value:match('(%d)(.+)')
-      if self.joystick:getHat(hat) == direction then
-          return 1
-      end
+  local hat, direction = value:match('(%d)(.+)')
+  if self.joystick:getHat(hat) == direction then
+      return 1
   end
   return 0
 end
@@ -93,7 +85,7 @@ function Player:update()
           keyboardUsed = true
           break
         end
-      elseif joystickSource[type] then
+      elseif joystickSource[type] and self.joystick then
         local v = joystickSource[type](self, value)
         if v > 0 then
           joystickUsed = true
