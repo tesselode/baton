@@ -131,18 +131,13 @@ function Player:update()
     end
 
     -- deadzone
-    pair.x, pair.y = 0, 0
     if self.squareDeadzone then
-      if math.abs(pair.rawX) > self.deadzone then
-        pair.x = pair.rawX
-      end
-      if math.abs(pair.rawY) > self.deadzone then
-        pair.y = pair.rawY
-      end
+      pair.x = math.abs(pair.rawX) > self.deadzone and pair.rawX or 0
+      pair.y = math.abs(pair.rawY) > self.deadzone and pair.rawY or 0
+    elseif len > self.deadzone then
+      pair.x, pair.y = pair.rawX, pair.rawY
     else
-      if len > self.deadzone then
-        pair.x, pair.y = pair.rawX, pair.rawY
-      end
+      pair.x, pair.y = 0, 0
     end
 
     -- down/pressed/released
