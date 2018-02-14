@@ -45,10 +45,15 @@ local joystickSource = {}
 
 function joystickSource:axis(value)
   local axis, direction = value:match '(.+)([%+%-])'
-  local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
-                            or self.joystick:getGamepadAxis(axis)
-  if direction == '-' then v = -v end
-  return v > 0 and v or 0
+
+  if tonumber(axis) then
+    value = self.joystick:getAxis(tonumber(axis))
+  else
+    value = self.joystick:getGamepadAxis(axis)
+  end
+
+  if direction == '-' then value = -value end
+  return value > 0 and value or 0
 end
 
 function joystickSource:button(button)
