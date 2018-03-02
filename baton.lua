@@ -73,6 +73,7 @@ function joystickSource:hat(value)
 end
 
 local Player = {}
+Player.__index = Player
 
 function Player:update()
   local keyboardUsed = false
@@ -206,7 +207,7 @@ function baton.new(config)
     joystick = config.joystick,
     deadzone = .5,
     squareDeadzone = false,
-  }, {__index = Player})
+  }, Player)
 
   for controlName, _ in pairs(config.controls) do
     player._controls[controlName] = {
