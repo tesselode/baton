@@ -1,5 +1,5 @@
 local baton = {
-  _VERSION = 'baton',
+  _VERSION = 'Baton v1.0.0',
   _DESCRIPTION = 'Input library for LÖVE.',
   _URL = 'https://github.com/tesselode/baton',
   _LICENSE = [[
