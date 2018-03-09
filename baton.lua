@@ -125,25 +125,28 @@ function Player:_setActiveDevice()
 	end
 end
 
+function Player:_getControlRawValue(control)
+	local rawValue = 0
+	for _, source in ipairs(control.sources) do
+		local type, value = parseSource(source)
+		if sf.kbm[type] and self._activeDevice == 'kbm' then
+			if sf.kbm[type](value) == 1 then
+				return 1
+			end
+		elseif sf.joy[type] and self._activeDevice == 'joy' then
+			rawValue = rawValue + sf.joy[type](self.config.joystick, value)
+			if rawValue >= 1 then
+				return 1
+			end
+		end
+	end
+	return rawValue
+end
+
 function Player:_updateControls()
 	for _, control in pairs(self._controls) do
 		-- get raw value
-		control.rawValue = 0
-		for _, source in ipairs(control.sources) do
-			local type, value = parseSource(source)
-			if sf.kbm[type] and self._activeDevice == 'kbm' then
-				if sf.kbm[type](value) == 1 then
-					control.rawValue = 1
-					break
-				end
-			elseif sf.joy[type] and self._activeDevice == 'joy' then
-				control.rawValue = control.rawValue + sf.joy[type](self.config.joystick, value)
-				if control.rawValue >= 1 then
-					control.rawValue = 1
-					break
-				end
-			end
-		end
+		control.rawValue = self:_getControlRawValue(control)
 
 		-- get value
 		control.value = 0
