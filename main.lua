@@ -15,4 +15,10 @@ local input = baton.new {
 	joystick = love.joystick.getJoysticks()[1],
 }
 
-print(inspect(input))
+function love.update(dt)
+	input:update()
+end
+
+function love.draw()
+	love.graphics.print(tostring(input._activeDevice))
+end
