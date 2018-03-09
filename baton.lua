@@ -1,8 +1,12 @@
 local baton = {}
 
+-- utility functions --
+
 local function parseSource(source)
 	return source:match '(.+):(.+)'
 end
+
+-- source functions --
 
 local sf = {kbm = {}, joy = {}}
 
@@ -18,6 +22,8 @@ function sf.joy.button(joystick, button)
 	end
 end
 
+-- player class --
+
 local Player = {}
 Player.__index = Player
 
@@ -26,7 +32,7 @@ function Player:_loadConfig(config)
 	assert(config.controls, 'No controls specified')
 	config.pairs = config.pairs or {}
 	config.deadzone = config.deadzone or .5
-	config.useSquareDeadzone = config.useSquareDeadzone or false
+	config.squareDeadzone = config.squareDeadzone or false
 	self.config = config
 end
 
@@ -37,7 +43,7 @@ function Player:_initControls()
 			sources = sources,
 			rawValue = 0,
 			value = 0,
-			downCurrent = false,
+			down = false,
 			downPrevious = false,
 			pressed = false,
 			released = false,
@@ -54,7 +60,7 @@ function Player:_initPairs()
 			rawY = 0,
 			x = 0,
 			y = 0,
-			downCurrent = false,
+			down = false,
 			downPrevious = false,
 			pressed = false,
 			released = false,
@@ -72,19 +78,100 @@ function Player:_setActiveDevice()
 	for _, control in pairs(self._controls) do
 		for _, source in ipairs(control.sources) do
 			local type, value = parseSource(source)
-			if sf.kbm[type] and sf.kbm[type](value) > self.config.deadzone then
-				self._activeDevice = 'kbm'
-				return
-			elseif self.config.joystick and sf.joy[type] and sf.joy[type](self.config.joystick, value) > self.config.deadzone then
-				self._activeDevice = 'joy'
+			if sf.kbm[type] then
+				if sf.kbm[type](value) > self.config.deadzone then
+					self._activeDevice = 'kbm'
+					return
+				end
+			elseif self.config.joystick and sf.joy[type] then
+				if sf.joy[type](self.config.joystick, value) > self.config.deadzone then
+					self._activeDevice = 'joy'
+				end
 			end
 		end
 	end
 end
 
+function Player:_updateControls()
+	for _, control in pairs(self._controls) do
+		-- get raw value
+		control.rawValue = 0
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if sf.kbm[type] and self._activeDevice == 'kbm' then
+				if sf.kbm[type](value) == 1 then
+					control.rawValue = 1
+					break
+				end
+			elseif sf.joy[type] and self._activeDevice == 'joy' then
+				control.rawValue = control.rawValue + sf.joy[type](self.config.joystick, value)
+				if control.rawValue >= 1 then
+					control.rawValue = 1
+					break
+				end
+			end
+		end
+
+		-- get value
+		control.value = 0
+		if control.rawValue >= self.config.deadzone then
+			control.value = control.rawValue
+		end
+
+		-- down/pressed/released
+	    control.downPrevious = control.down
+	    control.down = control.value > 0
+	    control.pressed = control.down and not control.downPrevious
+		control.released = control.downPrevious and not control.down
+	end
+end
+
 function Player:update()
 	self:_setActiveDevice()
+	self:_updateControls()
 end
+
+function Player:getRaw(name)
+	if self._controls[name] then
+		return self._controls[name].rawValue
+	else
+		error('No control with name "' .. name .. '" defined', 3)
+	end
+end
+
+function Player:get(name)
+	if self._controls[name] then
+		return self._controls[name].value
+	else
+		error('No control with name "' .. name .. '" defined', 3)
+	end
+end
+
+function Player:down(name)
+	if self._controls[name] then
+		return self._controls[name].down
+	else
+		error('No control with name "' .. name .. '" defined', 3)
+	end
+end
+
+function Player:pressed(name)
+	if self._controls[name] then
+		return self._controls[name].pressed
+	else
+		error('No control with name "' .. name .. '" defined', 3)
+	end
+end
+
+function Player:released(name)
+	if self._controls[name] then
+		return self._controls[name].released
+	else
+		error('No control with name "' .. name .. '" defined', 3)
+	end
+end
+
+-- baton functions --
 
 function baton.new(config)
 	local player = setmetatable({}, Player)

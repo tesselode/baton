@@ -20,5 +20,5 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.print(tostring(input._activeDevice))
+	love.graphics.print(tostring(input:released 'left'))
 end
