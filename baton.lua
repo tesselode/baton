@@ -22,7 +22,7 @@ function sf.joy.button(joystick, button)
 	end
 end
 
--- player class --
+-- player class - internal functions --
 
 local Player = {}
 Player.__index = Player
@@ -126,13 +126,48 @@ function Player:_updateControls()
 	end
 end
 
+function Player:_updatePairs()
+	for _, pair in pairs(self._pairs) do
+		-- get raw x and y
+		pair.rawX = self._controls[pair.controls[2]].rawValue - self._controls[pair.controls[1]].rawValue
+		pair.rawY = self._controls[pair.controls[4]].rawValue - self._controls[pair.controls[3]].rawValue
+
+		-- limit to 1
+		local len = (pair.rawX^2 + pair.rawY^2) ^ .5
+		if len > 1 then
+			pair.rawX, pair.rawY = pair.rawX / len, pair.rawY / len
+		end
+
+		-- deadzone
+		if self.config.squareDeadzone then
+			pair.x = math.abs(pair.rawX) > self.config.deadzone and pair.rawX or 0
+			pair.y = math.abs(pair.rawY) > self.config.deadzone and pair.rawY or 0
+		elseif len > self.config.deadzone then
+			pair.x, pair.y = pair.rawX, pair.rawY
+		else
+			pair.x, pair.y = 0, 0
+		end
+
+		-- down/pressed/released
+		pair.downPrevious = pair.down
+		pair.down = pair.x ~= 0 or pair.y ~= 0
+		pair.pressed = pair.down and not pair.downPrevious
+		pair.released = pair.downPrevious and not pair.down
+	end
+end
+
+-- player class - public API --
+
 function Player:update()
 	self:_setActiveDevice()
 	self:_updateControls()
+	self:_updatePairs()
 end
 
 function Player:getRaw(name)
-	if self._controls[name] then
+	if self._pairs[name] then
+		return self._pairs[name].rawX, self._pairs[name].rawY
+	elseif self._controls[name] then
 		return self._controls[name].rawValue
 	else
 		error('No control with name "' .. name .. '" defined', 3)
@@ -140,7 +175,9 @@ function Player:getRaw(name)
 end
 
 function Player:get(name)
-	if self._controls[name] then
+	if self._pairs[name] then
+		return self._pairs[name].x, self._pairs[name].y
+	elseif self._controls[name] then
 		return self._controls[name].value
 	else
 		error('No control with name "' .. name .. '" defined', 3)
@@ -148,7 +185,9 @@ function Player:get(name)
 end
 
 function Player:down(name)
-	if self._controls[name] then
+	if self._pairs[name] then
+		return self._pairs[name].down
+	elseif self._controls[name] then
 		return self._controls[name].down
 	else
 		error('No control with name "' .. name .. '" defined', 3)
@@ -156,7 +195,9 @@ function Player:down(name)
 end
 
 function Player:pressed(name)
-	if self._controls[name] then
+	if self._pairs[name] then
+		return self._pairs[name].pressed
+	elseif self._controls[name] then
 		return self._controls[name].pressed
 	else
 		error('No control with name "' .. name .. '" defined', 3)
@@ -164,7 +205,9 @@ function Player:pressed(name)
 end
 
 function Player:released(name)
-	if self._controls[name] then
+	if self._pairs[name] then
+		return self._pairs[name].released
+	elseif self._controls[name] then
 		return self._controls[name].released
 	else
 		error('No control with name "' .. name .. '" defined', 3)

@@ -20,5 +20,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.print(tostring(input:released 'left'))
+	local x, y = input:get 'move'
+	love.graphics.print(tostring(x) .. '\n' .. tostring(y))
 end
