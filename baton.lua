@@ -6,6 +6,14 @@ local function parseSource(source)
 	return source:match '(.+):(.+)'
 end
 
+local function parseAxis(value)
+	return value:match '(.+)([%+%-])'
+end
+
+local function parseHat(value)
+	return value:match '(%d)(.+)'
+end
+
 -- source functions --
 
 local sf = {kbm = {}, joy = {}}
@@ -14,12 +22,36 @@ function sf.kbm.key(key)
 	return love.keyboard.isDown(key) and 1 or 0
 end
 
+function sf.kbm.sc(sc)
+	return love.keyboard.isScancodeDown(sc) and 1 or 0
+end
+
+function sf.kbm.mouse(button)
+	return love.mouse.isDown(tonumber(button)) and 1 or 0
+end
+
+function sf.joy.axis(joystick, value)
+	local axis, direction = parseAxis(value)
+	if tonumber(axis) then
+		value = joystick:getAxis(tonumber(axis))
+	else
+		value = joystick:getGamepadAxis(axis)
+	end
+	if direction == '-' then value = -value end
+	return value > 0 and value or 0
+end
+
 function sf.joy.button(joystick, button)
 	if tonumber(button) then
 		return joystick:isDown(tonumber(button)) and 1 or 0
 	else
 		return joystick:isGamepadDown(button) and 1 or 0
 	end
+end
+
+function sf.joy.hat(joystick, value)
+	local hat, direction = parseHat(value)
+	return joystick:getHat(hat) == direction and 1 or 0
 end
 
 -- player class - internal functions --
@@ -72,6 +104,7 @@ function Player:_init(config)
 	self:_loadConfig(config)
 	self:_initControls()
 	self:_initPairs()
+	self._activeDevice = 'none'
 end
 
 function Player:_setActiveDevice()
@@ -212,6 +245,10 @@ function Player:released(name)
 	else
 		error('No control with name "' .. name .. '" defined', 3)
 	end
+end
+
+function Player:getActiveDevice()
+	return self._activeDevice
 end
 
 -- baton functions --
