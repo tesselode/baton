@@ -163,9 +163,9 @@ function Player:_updateControls()
 	for _, control in pairs(self._controls) do
 		control.rawValue = self:_getControlRawValue(control)
 		control.value = control.rawValue >= self.config.deadzone and control.rawValue or 0
-	    control.downPrevious = control.down
-	    control.down = control.value > 0
-	    control.pressed = control.down and not control.downPrevious
+		control.downPrevious = control.down
+		control.down = control.value > 0
+		control.pressed = control.down and not control.downPrevious
 		control.released = control.downPrevious and not control.down
 	end
 end
