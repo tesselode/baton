@@ -24,7 +24,7 @@ local baton = {
 		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 		SOFTWARE.
-   	]]
+	]]
 }
 
 local function parseSource(source)
@@ -39,21 +39,21 @@ local function parseHat(value)
 	return value:match '(%d)(.+)'
 end
 
-local sf = {kbm = {}, joy = {}}
+local sourceFunction = {keyboardMouse = {}, joystick = {}}
 
-function sf.kbm.key(key)
+function sourceFunction.keyboardMouse.key(key)
 	return love.keyboard.isDown(key) and 1 or 0
 end
 
-function sf.kbm.sc(sc)
+function sourceFunction.keyboardMouse.sc(sc)
 	return love.keyboard.isScancodeDown(sc) and 1 or 0
 end
 
-function sf.kbm.mouse(button)
+function sourceFunction.keyboardMouse.mouse(button)
 	return love.mouse.isDown(tonumber(button)) and 1 or 0
 end
 
-function sf.joy.axis(joystick, value)
+function sourceFunction.joystick.axis(joystick, value)
 	local axis, direction = parseAxis(value)
 	if tonumber(axis) then
 		value = joystick:getAxis(tonumber(axis))
@@ -64,7 +64,7 @@ function sf.joy.axis(joystick, value)
 	return value > 0 and value or 0
 end
 
-function sf.joy.button(joystick, button)
+function sourceFunction.joystick.button(joystick, button)
 	if tonumber(button) then
 		return joystick:isDown(tonumber(button)) and 1 or 0
 	else
@@ -72,7 +72,7 @@ function sf.joy.button(joystick, button)
 	end
 end
 
-function sf.joy.hat(joystick, value)
+function sourceFunction.joystick.hat(joystick, value)
 	local hat, direction = parseHat(value)
 	return joystick:getHat(hat) == direction and 1 or 0
 end
@@ -132,13 +132,13 @@ function Player:_setActiveDevice()
 	for _, control in pairs(self._controls) do
 		for _, source in ipairs(control.sources) do
 			local type, value = parseSource(source)
-			if sf.kbm[type] then
-				if sf.kbm[type](value) > self.config.deadzone then
+			if sourceFunction.keyboardMouse[type] then
+				if sourceFunction.keyboardMouse[type](value) > self.config.deadzone then
 					self._activeDevice = 'kbm'
 					return
 				end
-			elseif self.config.joystick and sf.joy[type] then
-				if sf.joy[type](self.config.joystick, value) > self.config.deadzone then
+			elseif self.config.joystick and sourceFunction.joystick[type] then
+				if sourceFunction.joystick[type](self.config.joystick, value) > self.config.deadzone then
 					self._activeDevice = 'joy'
 				end
 			end
@@ -150,12 +150,12 @@ function Player:_getControlRawValue(control)
 	local rawValue = 0
 	for _, source in ipairs(control.sources) do
 		local type, value = parseSource(source)
-		if sf.kbm[type] and self._activeDevice == 'kbm' then
-			if sf.kbm[type](value) == 1 then
+		if sourceFunction.keyboardMouse[type] and self._activeDevice == 'kbm' then
+			if sourceFunction.keyboardMouse[type](value) == 1 then
 				return 1
 			end
-		elseif sf.joy[type] and self._activeDevice == 'joy' then
-			rawValue = rawValue + sf.joy[type](self.config.joystick, value)
+		elseif sourceFunction.joystick[type] and self._activeDevice == 'joy' then
+			rawValue = rawValue + sourceFunction.joystick[type](self.config.joystick, value)
 			if rawValue >= 1 then
 				return 1
 			end
