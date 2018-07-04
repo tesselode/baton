@@ -55,21 +55,16 @@ end
 
 function sourceFunction.joystick.axis(joystick, value)
 	local axis, direction = parseAxis(value)
-	if tonumber(axis) then
-		value = joystick:getAxis(tonumber(axis))
-	else
-		value = joystick:getGamepadAxis(axis)
-	end
+	value = tonumber(axis) and joystick:getAxis(tonumber(axis))
+	                        or joystick:getGamepadAxis(axis)
 	if direction == '-' then value = -value end
 	return value > 0 and value or 0
 end
 
 function sourceFunction.joystick.button(joystick, button)
-	if tonumber(button) then
-		return joystick:isDown(tonumber(button)) and 1 or 0
-	else
-		return joystick:isGamepadDown(button) and 1 or 0
-	end
+	local isDown = tonumber(button) and joystick:isDown(tonumber(button))
+									 or joystick:isGamepadDown(button)
+	return isDown and 1 or 0
 end
 
 function sourceFunction.joystick.hat(joystick, value)
@@ -166,16 +161,8 @@ end
 
 function Player:_updateControls()
 	for _, control in pairs(self._controls) do
-		-- get raw value
 		control.rawValue = self:_getControlRawValue(control)
-
-		-- get value
-		control.value = 0
-		if control.rawValue >= self.config.deadzone then
-			control.value = control.rawValue
-		end
-
-		-- down/pressed/released
+		control.value = control.rawValue >= self.config.deadzone and control.rawValue or 0
 	    control.downPrevious = control.down
 	    control.down = control.value > 0
 	    control.pressed = control.down and not control.downPrevious
@@ -186,11 +173,14 @@ end
 function Player:_updatePairs()
 	for _, pair in pairs(self._pairs) do
 		-- get raw x and y
-		pair.rawX = self._controls[pair.controls[2]].rawValue - self._controls[pair.controls[1]].rawValue
-		pair.rawY = self._controls[pair.controls[4]].rawValue - self._controls[pair.controls[3]].rawValue
+		local l = self._controls[pair.controls[1]].rawValue
+		local r = self._controls[pair.controls[2]].rawValue
+		local u = self._controls[pair.controls[3]].rawValue
+		local d = self._controls[pair.controls[4]].rawValue
+		pair.rawX, pair.rawY = r - l, d - u
 
 		-- limit to 1
-		local len = (pair.rawX^2 + pair.rawY^2) ^ .5
+		local len = math.sqrt(pair.rawX^2 + pair.rawY^2)
 		if len > 1 then
 			pair.rawX, pair.rawY = pair.rawX / len, pair.rawY / len
 		end
@@ -199,10 +189,9 @@ function Player:_updatePairs()
 		if self.config.squareDeadzone then
 			pair.x = math.abs(pair.rawX) > self.config.deadzone and pair.rawX or 0
 			pair.y = math.abs(pair.rawY) > self.config.deadzone and pair.rawY or 0
-		elseif len > self.config.deadzone then
-			pair.x, pair.y = pair.rawX, pair.rawY
 		else
-			pair.x, pair.y = 0, 0
+			pair.x = len > self.config.deadzone and pair.rawX or 0
+			pair.y = len > self.config.deadzone and pair.rawY or 0
 		end
 
 		-- down/pressed/released
