@@ -27,8 +27,6 @@ local baton = {
    	]]
 }
 
--- utility functions --
-
 local function parseSource(source)
 	return source:match '(.+):(.+)'
 end
@@ -40,8 +38,6 @@ end
 local function parseHat(value)
 	return value:match '(%d)(.+)'
 end
-
--- source functions --
 
 local sf = {kbm = {}, joy = {}}
 
@@ -80,8 +76,6 @@ function sf.joy.hat(joystick, value)
 	local hat, direction = parseHat(value)
 	return joystick:getHat(hat) == direction and 1 or 0
 end
-
--- player class - internal functions --
 
 local Player = {}
 Player.__index = Player
@@ -219,8 +213,6 @@ function Player:_updatePairs()
 	end
 end
 
--- player class - public API --
-
 function Player:update()
 	self:_setActiveDevice()
 	self:_updateControls()
@@ -280,8 +272,6 @@ end
 function Player:getActiveDevice()
 	return self._activeDevice
 end
-
--- baton functions --
 
 function baton.new(config)
 	local player = setmetatable({}, Player)
