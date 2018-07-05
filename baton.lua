@@ -76,8 +76,12 @@ local Player = {}
 Player.__index = Player
 
 function Player:_loadConfig(config)
-	assert(config, 'No config table provided')
-	assert(config.controls, 'No controls specified')
+	if not config then
+		error('No config table provided', 4)
+	end
+	if not config.controls then
+		error('No controls specified', 4)
+	end
 	config.pairs = config.pairs or {}
 	config.deadzone = config.deadzone or .5
 	config.squareDeadzone = config.squareDeadzone or false
