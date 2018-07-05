@@ -89,12 +89,10 @@ function love.draw()
 
 	love.graphics.setColor(.5, .5, .5)
 	local x, y = player:getRaw 'move'
-	love.graphics.circle('fill', x*pairDisplayRadius,
-		y*pairDisplayRadius, 4)
+	love.graphics.circle('fill', x*pairDisplayRadius, y*pairDisplayRadius, 4)
 	love.graphics.setColor(1, 1, 1)
 	x, y = player:get 'move'
-	love.graphics.circle('fill', x*pairDisplayRadius,
-		y*pairDisplayRadius, 4)
+	love.graphics.circle('fill', x*pairDisplayRadius, y*pairDisplayRadius, 4)
 
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.rectangle('line', -50, 150, 100, 100)
