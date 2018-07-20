@@ -6,10 +6,10 @@ local baton = require 'baton'
 
 local input = baton.new {
   controls = {
-    left = {'key:left', 'axis:leftx-', 'button:dpleft'},
-    right = {'key:right', 'axis:leftx+', 'button:dpright'},
-    up = {'key:up', 'axis:lefty-', 'button:dpup'},
-    down = {'key:down', 'axis:lefty+', 'button:dpdown'},
+    left = {'key:left', 'key:a', 'axis:leftx-', 'button:dpleft'},
+    right = {'key:right', 'key:d', 'axis:leftx+', 'button:dpright'},
+    up = {'key:up', 'key:w', 'axis:lefty-', 'button:dpup'},
+    down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
     action = {'key:x', 'button:a'},
   },
   pairs = {
@@ -42,11 +42,11 @@ baton = require 'path.to.baton' -- if it's in subfolders
 Controls are defined using a table. Each key should be the name of a control, and each value should be another table. This table contains strings defining what sources should be mapped to the control. For example, this table
 ```lua
 controls = {
-  left = {'key:left', 'axis:leftx-'}
+  left = {'key:left', 'key:a', 'axis:leftx-'}
   shoot = {'key:x', 'button:a'}
 }
 ```
-will create a control called "left" that responds to the left arrow key and pushing the left analog stick on the controller to the left, and a control called "shoot" that responds to the X key on the keyboard and the A button on the gamepad.
+will create a control called "left" that responds to the left arrow key, the A key, and pushing the left analog stick on the controller to the left, and a control called "shoot" that responds to the X key on the keyboard and the A button on the gamepad.
 
 Sources are strings with the following format:
 ```lua
@@ -139,4 +139,4 @@ At any time, only the keyboard/mouse sources or the josytick sources for a playe
 You can call `player:getActiveDevice()` to see which input device is currently active. It will return either `'kbm'` (keyboard/mouse) or `'joy'` (joystick) (or `'none'` if no sources have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
 
 ## Contributing
-This library is still fairly young, so feel free to take it for a spin and suggest additions and changes (especially if you try making a multiplayer game with it!). Issues and pull requests are always welcome. To run the test, run `love .` in the baton folder.
+Issues and pull requests are always welcome. To run the test, run `love .` in the baton folder.
