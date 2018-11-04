@@ -227,6 +227,31 @@ function Player:_resetCallbackChecks()
 	end
 end
 
+-- wraps a love pressed/released callback so that when an input is pressed or released,
+-- the appropriate controls will be set to pressed or released on the next player update.
+-- callbackName - the name of the callback to hook
+-- callbackType - whether this is a "pressed" or "released" callback
+-- check - a function that returns true if a source is pressed or released
+-- - type - the type of the source
+-- - value - the value of the source
+-- - args - the args passed to the love callback
+function Player:_hookCallback(callbackName, callbackType, check)
+	local oldCallback = love[callbackName]
+	love[callbackName] = function(...)
+		for _, control in pairs(self._controls) do
+			for _, source in ipairs(control.sources) do
+				local type, value = parseSource(source)
+				if check(type, value, {...}) then
+					if callbackType == 'pressed' then control._callbackPressed = true end
+					if callbackType == 'released' then control._callbackReleased = true end
+					break
+				end
+			end
+		end
+		if oldCallback then oldCallback(...) end
+	end
+end
+
 function Player:update()
 	self:_setActiveDevice()
 	self:_updateControls()
@@ -235,117 +260,40 @@ function Player:update()
 end
 
 function Player:hookCallbacks()
-	local oldKeypressed = love.keypressed
-	function love.keypressed(key, scancode, isrepeat)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if (type == 'key' and value == key) or (type == 'sc' and value == scancode) then
-					control._callbackPressed = true
-					break
-				end
-			end
-		end
-		if oldKeypressed then oldKeypressed(key, scancode, isrepeat) end
-	end
-
-	local oldKeyreleased = love.keyreleased
-	function love.keyreleased(key, scancode)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if (type == 'key' and value == key) or (type == 'sc' and value == scancode) then
-					control._callbackReleased = true
-					break
-				end
-			end
-		end
-		if oldKeyreleased then oldKeyreleased(key, scancode) end
-	end
-
-	local oldMousepressed = love.mousepressed
-	function love.mousepressed(x, y, button, istouch, presses)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if type == 'mouse' and value == button then
-					control._callbackPressed = true
-					break
-				end
-			end
-		end
-		if oldMousepressed then oldMousepressed(x, y, button, istouch, presses) end
-	end
-
-	local oldMousereleased = love.mousereleased
-	function love.mousereleased(x, y, button, istouch, presses)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if type == 'mouse' and value == tostring(button) then
-					control._callbackReleased = true
-					break
-				end
-			end
-		end
-		if oldMousereleased then oldMousereleased(x, y, button, istouch, presses) end
-	end
-
-	local oldGamepadpressed = love.gamepadpressed
-	function love.gamepadpressed(joystick, button)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if type == 'button' and joystick == self.config.joystick and value == button then
-					control._callbackPressed = true
-					break
-				end
-			end
-		end
-		if oldGamepadpressed then oldGamepadpressed(joystick, button) end
-	end
-
-	local oldGamepadreleased = love.gamepadreleased
-	function love.gamepadreleased(joystick, button)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if type == 'button' and joystick == self.config.joystick and value == button then
-					control._callbackReleased = true
-					break
-				end
-			end
-		end
-		if oldGamepadreleased then oldGamepadreleased(joystick, button) end
-	end
-
-	local oldJoystickpressed = love.joystickpressed
-	function love.joystickpressed(joystick, button)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if type == 'button' and joystick == self.config.joystick and value == tostring(button) then
-					control._callbackPressed = true
-					break
-				end
-			end
-		end
-		if oldJoystickpressed then oldJoystickpressed(joystick, button) end
-	end
-
-	local oldJoystickreleased = love.joystickreleased
-	function love.joystickreleased(joystick, button)
-		for _, control in pairs(self._controls) do
-			for _, source in ipairs(control.sources) do
-				local type, value = parseSource(source)
-				if type == 'button' and joystick == self.config.joystick and value == tostring(button) then
-					control._callbackReleased = true
-					break
-				end
-			end
-		end
-		if oldJoystickreleased then oldJoystickreleased(joystick, button) end
-	end
+	self:_hookCallback('keypressed', 'pressed', function(sourceType, sourceValue, args)
+		return (sourceType == 'key' and sourceValue == args[1])
+		    or (sourceType == 'sc' and sourceValue == args[2])
+	end)
+	self:_hookCallback('keyreleased', 'released', function(sourceType, sourceValue, args)
+		return (sourceType == 'key' and sourceValue == args[1])
+		    or (sourceType == 'sc' and sourceValue == args[2])
+	end, true)
+	self:_hookCallback('mousepressed', 'pressed', function(sourceType, sourceValue, args)
+		return sourceType == 'mouse' and sourceValue == tostring(args[3])
+	end)
+	self:_hookCallback('mousereleased', 'released', function(sourceType, sourceValue, args)
+		return sourceType == 'mouse' and sourceValue == tostring(args[3])
+	end)
+	self:_hookCallback('gamepadpressed', 'pressed', function(sourceType, sourceValue, args)
+		return sourceType == 'button'
+		   and self.config.joystick == args[1]
+		   and sourceValue == args[2]
+	end)
+	self:_hookCallback('gamepadreleased', 'released', function(sourceType, sourceValue, args)
+		return sourceType == 'button'
+		   and self.config.joystick == args[1]
+		   and sourceValue == args[2]
+	end)
+	self:_hookCallback('joystickpressed', 'pressed', function(sourceType, sourceValue, args)
+		return sourceType == 'button'
+		   and self.config.joystick == args[1]
+		   and sourceValue == tostring(args[2])
+	end)
+	self:_hookCallback('joystickreleased', 'released', function(sourceType, sourceValue, args)
+		return sourceType == 'button'
+		   and self.config.joystick == args[1]
+		   and sourceValue == tostring(args[2])
+	end)
 end
 
 function Player:getRaw(name)
