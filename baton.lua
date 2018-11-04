@@ -314,6 +314,34 @@ function Player:hookCallbacks()
 		end
 		if oldGamepadreleased then oldGamepadreleased(joystick, button) end
 	end
+
+	local oldJoystickpressed = love.joystickpressed
+	function love.joystickpressed(joystick, button)
+		for _, control in pairs(self._controls) do
+			for _, source in ipairs(control.sources) do
+				local type, value = parseSource(source)
+				if type == 'button' and joystick == self.config.joystick and value == tostring(button) then
+					control._callbackPressed = true
+					break
+				end
+			end
+		end
+		if oldJoystickpressed then oldJoystickpressed(joystick, button) end
+	end
+
+	local oldJoystickreleased = love.joystickreleased
+	function love.joystickreleased(joystick, button)
+		for _, control in pairs(self._controls) do
+			for _, source in ipairs(control.sources) do
+				local type, value = parseSource(source)
+				if type == 'button' and joystick == self.config.joystick and value == tostring(button) then
+					control._callbackReleased = true
+					break
+				end
+			end
+		end
+		if oldJoystickreleased then oldJoystickreleased(joystick, button) end
+	end
 end
 
 function Player:getRaw(name)
