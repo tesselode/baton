@@ -62,8 +62,12 @@ function sourceFunction.joystick.axis(joystick, value)
 end
 
 function sourceFunction.joystick.button(joystick, button)
-	local isDown = tonumber(button) and joystick:isDown(tonumber(button))
-									 or joystick:isGamepadDown(button)
+	local isDown
+	if tonumber(button) then
+		isDown = joystick:isDown(tonumber(button))
+	else
+		isDown = joystick:isGamepadDown(button)
+	end
 	return isDown and 1 or 0
 end
 
