@@ -92,6 +92,8 @@ function Player:_initControls()
 	self._controls = {}
 	for controlName, sources in pairs(self.config.controls) do
 		self._controls[controlName] = {
+			_callbackPressed = false,
+			_callbackReleased = false,
 			sources = sources,
 			rawValue = 0,
 			value = 0,
@@ -169,13 +171,21 @@ function Player:_updateControls()
 		control.value = control.rawValue >= self.config.deadzone and control.rawValue or 0
 		control.downPrevious = control.down
 		control.down = control.value > 0
-		control.pressed = control.down and not control.downPrevious
-		control.released = control.downPrevious and not control.down
+		control.pressed = control._callbackPressed or (control.down and not control.downPrevious)
+		control.released = control._callbackReleased or (control.downPrevious and not control.down)
 	end
 end
 
 function Player:_updatePairs()
 	for _, pair in pairs(self._pairs) do
+		-- get whether controls are pressed and released from callbacks
+		local callbackPressed, callbackReleased = false, false
+		for i = 1, 4 do
+			local control = self._controls[pair.controls[i]]
+			if control._callbackPressed then callbackPressed = true end
+			if control._callbackReleased then callbackReleased = true end
+		end
+
 		-- get raw x and y
 		local l = self._controls[pair.controls[1]].rawValue
 		local r = self._controls[pair.controls[2]].rawValue
@@ -201,8 +211,15 @@ function Player:_updatePairs()
 		-- down/pressed/released
 		pair.downPrevious = pair.down
 		pair.down = pair.x ~= 0 or pair.y ~= 0
-		pair.pressed = pair.down and not pair.downPrevious
-		pair.released = pair.downPrevious and not pair.down
+		pair.pressed = callbackPressed or (pair.down and not pair.downPrevious)
+		pair.released = callbackReleased or (pair.downPrevious and not pair.down)
+	end
+end
+
+function Player:_resetCallbackChecks()
+	for _, control in pairs(self._controls) do
+		control._callbackPressed = false
+		control._callbackReleased = false
 	end
 end
 
@@ -210,6 +227,37 @@ function Player:update()
 	self:_setActiveDevice()
 	self:_updateControls()
 	self:_updatePairs()
+	self:_resetCallbackChecks()
+end
+
+function Player:hookCallbacks()
+	local oldKeypressed = love.keypressed
+	function love.keypressed(key, scancode, isrepeat)
+		for _, control in pairs(self._controls) do
+			for _, source in ipairs(control.sources) do
+				local type, value = parseSource(source)
+				if (type == 'key' and value == key) or (type == 'sc' and value == scancode) then
+					control._callbackPressed = true
+					break
+				end
+			end
+		end
+		if oldKeypressed then oldKeypressed(key, scancode, isrepeat) end
+	end
+
+	local oldKeyreleased = love.keyreleased
+	function love.keyreleased(key, scancode)
+		for _, control in pairs(self._controls) do
+			for _, source in ipairs(control.sources) do
+				local type, value = parseSource(source)
+				if (type == 'key' and value == key) or (type == 'sc' and value == scancode) then
+					control._callbackReleased = true
+					break
+				end
+			end
+		end
+		if oldKeyreleased then oldKeyreleased(key, scancode) end
+	end
 end
 
 function Player:getRaw(name)

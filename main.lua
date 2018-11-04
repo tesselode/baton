@@ -23,10 +23,20 @@ local buttonDisplayTargetAlpha = 0
 local updates = 0
 local updateTime = 0
 
+local updateTimer = .5
+
+function love.load()
+	player:hookCallbacks()
+end
+
 function love.update(dt)
 	local time = love.timer.getTime()
 
-	player:update()
+	updateTimer = updateTimer - dt
+	while updateTimer <= 0 do
+		updateTimer = updateTimer + .5
+		player:update()
+	end
 
 	pairDisplayTargetAlpha = player:pressed 'move' and 1
 	                      or player:released 'move' and 1
