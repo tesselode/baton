@@ -1,5 +1,7 @@
 # Baton
-**Baton** is an input library for LÖVE that bridges the gap between keyboard and joystick controls and allows you to easily define and change controls on the fly.
+**Baton** is an input library for LÖVE that supports multiple joysticks, players, and modes (menu/walking/driving). It bridges the gap between keyboard and joystick controls and allows you to easily define and change controls on the fly.
+
+
 
 ```lua
 local baton = require 'baton'
