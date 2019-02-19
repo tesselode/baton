@@ -1,12 +1,15 @@
 local baton = require 'baton'
 
+local simulateLaggyInput = true
+local laggyInputTimer = .5
+
 local player = baton.new {
 	controls = {
 		left = {'key:left', 'axis:leftx-', 'button:dpleft'},
 		right = {'key:right', 'axis:leftx+', 'button:dpright'},
 		up = {'key:up', 'axis:lefty-', 'button:dpup'},
 		down = {'key:down', 'axis:lefty+', 'button:dpdown'},
-		action = {'key:x', 'button:a', 'mouse:1'},
+		action = {'key:x', 'button:1', 'mouse:1'},
 	},
 	pairs = {
 		move = {'left', 'right', 'up', 'down'}
@@ -26,7 +29,15 @@ local updateTime = 0
 function love.update(dt)
 	local time = love.timer.getTime()
 
-	player:update()
+	if simulateLaggyInput then
+		laggyInputTimer = laggyInputTimer - dt
+		while laggyInputTimer <= 0 do
+			laggyInputTimer = laggyInputTimer + .5
+			player:update()
+		end
+	else
+		player:update()
+	end
 
 	pairDisplayTargetAlpha = player:pressed 'move' and 1
 	                      or player:released 'move' and 1
@@ -58,9 +69,35 @@ function love.keypressed(key)
 	if key == 'escape' then
 		love.event.quit()
 	end
-	if key == 'tab' then
-		player.controls.action[1] = 'key:z'
-	end
+	player:keypressed(key)
+end
+
+function love.keyreleased(key)
+	player:keyreleased(key)
+end
+
+function love.mousepressed(x, y, button)
+	player:mousepressed(x, y, button)
+end
+
+function love.mousereleased(x, y, button)
+	player:mousereleased(x, y, button)
+end
+
+function love.gamepadpressed(joystick, button)
+	player:gamepadpressed(joystick, button)
+end
+
+function love.gamepadreleased(joystick, button)
+	player:gamepadreleased(joystick, button)
+end
+
+function love.joystickpressed(joystick, button)
+	player:joystickpressed(joystick, button)
+end
+
+function love.joystickreleased(joystick, button)
+	player:joystickreleased(joystick, button)
 end
 
 local pairDisplayRadius = 128

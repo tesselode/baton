@@ -101,6 +101,8 @@ function Player:_initControls()
 			downPrevious = false,
 			pressed = false,
 			released = false,
+			pressEventReceived = false,
+			releaseEventReceived = false,
 		}
 	end
 end
@@ -171,8 +173,10 @@ function Player:_updateControls()
 		control.value = control.rawValue >= self.config.deadzone and control.rawValue or 0
 		control.downPrevious = control.down
 		control.down = control.value > 0
-		control.pressed = control.down and not control.downPrevious
-		control.released = control.downPrevious and not control.down
+		control.pressed = control.pressEventReceived or (control.down and not control.downPrevious)
+		control.released = control.releaseEventReceived or (control.downPrevious and not control.down)
+		control.pressEventReceived = false
+		control.releaseEventReceived = false
 	end
 end
 
@@ -266,6 +270,108 @@ end
 
 function Player:getActiveDevice()
 	return self._activeDevice
+end
+
+-- optional functions to hook up love callbacks to a player
+
+function Player:keypressed(key, scancode)
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if (type == 'key' and value == key) or (type == 'sc' and value == scancode) then
+				control.pressed = true
+				break
+			end
+		end
+	end
+end
+
+function Player:keyreleased(key, scancode)
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if (type == 'key' and value == key) or (type == 'sc' and value == scancode) then
+				control.released = true
+				break
+			end
+		end
+	end
+end
+
+function Player:mousepressed(x, y, button)
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if type == 'mouse' and tonumber(value) == button then
+				control.pressed = true
+				break
+			end
+		end
+	end
+end
+
+function Player:mousereleased(x, y, button)
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if type == 'mouse' and tonumber(value) == button then
+				control.released = true
+				break
+			end
+		end
+	end
+end
+
+function Player:gamepadpressed(joystick, button)
+	if self.config.joystick ~= joystick then return end
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if type == 'button' and value == button then
+				control.pressed = true
+				break
+			end
+		end
+	end
+end
+
+function Player:gamepadreleased(joystick, button)
+	if self.config.joystick ~= joystick then return end
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if type == 'button' and value == button then
+				control.released = true
+				break
+			end
+		end
+	end
+end
+
+function Player:joystickpressed(joystick, button)
+	if self.config.joystick ~= joystick then return end
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if type == 'button' and tonumber(value) == button then
+				control.pressed = true
+				break
+			end
+		end
+	end
+end
+
+function Player:joystickreleased(joystick, button)
+	if self.config.joystick ~= joystick then return end
+	for _, control in pairs(self._controls) do
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if type == 'button' and tonumber(value) == button then
+				control.released = true
+				break
+			end
+		end
+	end
 end
 
 function baton.new(config)
