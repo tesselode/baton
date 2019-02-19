@@ -58,9 +58,6 @@ function love.keypressed(key)
 	if key == 'escape' then
 		love.event.quit()
 	end
-	if key == 'tab' then
-		player.controls.action[1] = 'key:z'
-	end
 end
 
 local pairDisplayRadius = 128
