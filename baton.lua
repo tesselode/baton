@@ -27,41 +27,75 @@ local baton = {
 	]]
 }
 
+-- string parsing functions --
+
+-- splits a source definition into type and value
+-- example: 'button:a' -> 'button', 'a'
 local function parseSource(source)
 	return source:match '(.+):(.+)'
 end
 
+-- splits an axis value into axis and direction
+-- example: 'leftx-' -> 'leftx', '-'
 local function parseAxis(value)
 	return value:match '(.+)([%+%-])'
 end
 
+-- splits a joystick hat value into hat number and direction
+-- example: '2rd' -> '2', 'rd'
 local function parseHat(value)
 	return value:match '(%d)(.+)'
 end
 
+--[[
+	-- source functions --
+
+	each source function checks the state of one type of input
+	and returns a value from 0 to 1. for binary controls, such
+	as keyboard keys and gamepad buttons, they return 1 if the
+	input is held down and 0 if not. for analog controls, such
+	as "leftx+" (the left analog stick held to the right), they
+	return a number from 0 to 1.
+
+	source functions are split into keyboard/mouse functions
+	and joystick/gamepad functions. baton treats these two
+	categories slightly differently.
+]]
+
 local sourceFunction = {keyboardMouse = {}, joystick = {}}
 
+-- checks whether a keyboard key is down or not
 function sourceFunction.keyboardMouse.key(key)
 	return love.keyboard.isDown(key) and 1 or 0
 end
 
+-- checks whether a keyboard key is down or not,
+-- but it takes a scancode as an input
 function sourceFunction.keyboardMouse.sc(sc)
 	return love.keyboard.isScancodeDown(sc) and 1 or 0
 end
 
+-- checks whether a mouse buttons is down or not.
+-- note that baton doesn't detect mouse movement, just the buttons
 function sourceFunction.keyboardMouse.mouse(button)
 	return love.mouse.isDown(tonumber(button)) and 1 or 0
 end
 
+-- checks the position of a joystick axis
 function sourceFunction.joystick.axis(joystick, value)
 	local axis, direction = parseAxis(value)
+	-- "a and b or c" is ok here because b will never be boolean
 	value = tonumber(axis) and joystick:getAxis(tonumber(axis))
 	                        or joystick:getGamepadAxis(axis)
 	if direction == '-' then value = -value end
 	return value > 0 and value or 0
 end
 
+-- checks whether a joystick button is held down or not
+-- can take a number or a GamepadButton string
 function sourceFunction.joystick.button(joystick, button)
+	-- i'm intentionally not using the "a and b or c" idiom here
+	-- because joystick.isDown returns a boolean
 	if tonumber(button) then
 		return joystick:isDown(tonumber(button)) and 1 or 0
 	else
@@ -69,14 +103,29 @@ function sourceFunction.joystick.button(joystick, button)
 	end
 end
 
+-- checks the direction of a joystick hat
 function sourceFunction.joystick.hat(joystick, value)
 	local hat, direction = parseHat(value)
 	return joystick:getHat(hat) == direction and 1 or 0
 end
 
+--[[
+	-- player class --
+
+	the player object takes a configuration table and handles input
+	accordingly. it's called a "player" because it makes sense to use
+	multiple of these for each player in a multiplayer game, but
+	you can use separate player objects to organize inputs
+	however you want.
+]]
+
 local Player = {}
 Player.__index = Player
 
+-- internal functions --
+
+-- sets the player's config to a user-defined config table
+-- and sets some defaults if they're not already defined
 function Player:_loadConfig(config)
 	if not config then
 		error('No config table provided', 4)
@@ -90,6 +139,7 @@ function Player:_loadConfig(config)
 	self.config = config
 end
 
+-- initializes a control object for each control defined in the config
 function Player:_initControls()
 	self._controls = {}
 	for controlName, sources in pairs(self.config.controls) do
@@ -105,6 +155,7 @@ function Player:_initControls()
 	end
 end
 
+-- initializes an axis pair object for each axis pair defined in the config
 function Player:_initPairs()
 	self._pairs = {}
 	for pairName, controls in pairs(self.config.pairs) do
@@ -129,6 +180,16 @@ function Player:_init(config)
 	self._activeDevice = 'none'
 end
 
+--[[
+	detects the active device (keyboard/mouse or joystick).
+	if the keyboard or mouse is currently being used, joystick
+	inputs will be ignored. this is to prevent slight axis movements
+	from adding errant inputs when someone's using the keyboard.
+
+	the active device is saved to player._activeDevice, which is then
+	used throughout the rest of the update loop to check only
+	keyboard or joystick inputs.
+]]
 function Player:_setActiveDevice()
 	for _, control in pairs(self._controls) do
 		for _, source in ipairs(control.sources) do
@@ -147,6 +208,10 @@ function Player:_setActiveDevice()
 	end
 end
 
+--[[
+	gets the value of a control by running the appropriate source functions
+	for all of its sources. does not apply deadzone.
+]]
 function Player:_getControlRawValue(control)
 	local rawValue = 0
 	for _, source in ipairs(control.sources) do
@@ -165,6 +230,10 @@ function Player:_getControlRawValue(control)
 	return rawValue
 end
 
+--[[
+	updates each control in a player. saves the value with and without deadzone
+	and the down/pressed/released state.
+]]
 function Player:_updateControls()
 	for _, control in pairs(self._controls) do
 		control.rawValue = self:_getControlRawValue(control)
@@ -176,6 +245,10 @@ function Player:_updateControls()
 	end
 end
 
+--[[
+	updates each axis pair in a player. saves the value with and without deadzone
+	and the down/pressed/released state.
+]]
 function Player:_updatePairs()
 	for _, pair in pairs(self._pairs) do
 		-- get raw x and y
@@ -208,12 +281,16 @@ function Player:_updatePairs()
 	end
 end
 
+-- public API --
+
+-- checks for changes in inputs
 function Player:update()
 	self:_setActiveDevice()
 	self:_updateControls()
 	self:_updatePairs()
 end
 
+-- gets the value of a control or axis pair without deadzone applied
 function Player:getRaw(name)
 	if self._pairs[name] then
 		return self._pairs[name].rawX, self._pairs[name].rawY
@@ -224,6 +301,7 @@ function Player:getRaw(name)
 	end
 end
 
+-- gets the value of a control or axis pair with deadzone applied
 function Player:get(name)
 	if self._pairs[name] then
 		return self._pairs[name].x, self._pairs[name].y
@@ -234,6 +312,7 @@ function Player:get(name)
 	end
 end
 
+-- gets whether a control or axis pair is "held down"
 function Player:down(name)
 	if self._pairs[name] then
 		return self._pairs[name].down
@@ -244,6 +323,7 @@ function Player:down(name)
 	end
 end
 
+-- gets whether a control or axis pair was pressed this frame
 function Player:pressed(name)
 	if self._pairs[name] then
 		return self._pairs[name].pressed
@@ -254,6 +334,7 @@ function Player:pressed(name)
 	end
 end
 
+-- gets whether a control or axis pair was released this frame
 function Player:released(name)
 	if self._pairs[name] then
 		return self._pairs[name].released
@@ -264,10 +345,20 @@ function Player:released(name)
 	end
 end
 
+--[[
+	gets the currently active device (either "kbm", "joy", or "none").
+	this is useful for displaying instructional text. you may have
+	a menu that says "press ENTER to confirm" or "press A to confirm"
+	depending on whether the player is using their keyboard or gamepad.
+	this function allows you to detect which they used most recently.
+]]
 function Player:getActiveDevice()
 	return self._activeDevice
 end
 
+-- main functions --
+
+-- creates a new player with the user-provided config table
 function baton.new(config)
 	local player = setmetatable({}, Player)
 	player:_init(config)
