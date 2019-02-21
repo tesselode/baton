@@ -60,7 +60,7 @@ Here are the different input types and the sources that can be associated with t
 | `sc`    | A scancode.                  | Any LÖVE [KeyConstant](http://love2d.org/wiki/KeyConstant)                                                                                                              |
 | `mouse` | A mouse button.              | A number representing a mouse button (see [love.mouse.isDown](https://love2d.org/wiki/love.mouse.isDown))                                                               |
 | `axis`  | A joystick or gamepad axis.  | Either a number representing a joystick axis or a LÖVE [GamepadAxis](http://love2d.org/wiki/GamepadAxis). Add a '+' or '-' on the end to denote the direction to detect.|
-| `button`| A joystick or gamepad button.| Either a number repesenting a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)                                                           |
+| `button`| A joystick or gamepad button.| Either a number representing a joystick button or a LÖVE [GamepadButton](http://love2d.org/wiki/GamepadButton)                                                           |
 | `hat`   | A joystick hat. | A number representing a joystick hat and a [JoystickHat](https://love2d.org/wiki/JoystickHat). For example '1r' corresponds to the 1st hat pushed right. |
 
 ### Defining axis pairs
@@ -134,7 +134,7 @@ These functions are most applicable for controls that act as buttons, such as a 
 The `controls` table, `pairs` table, `joystick`, `deadzone`, and `squareDeadzone` can all be accessed via `player.config`. Any of the values can be changed, and the player's behavior will be updated automatically. Note, however, that new controls and pairs cannot be added after the player is created, and controls and pairs should not be removed entirely (if you want to disable a control, you can set it to an empty table, removing all of its sources).
 
 #### Getting the active input device
-At any time, only the keyboard/mouse sources or the josytick sources for a player will be active. A device will be considered active if any of the sources for that device exceed the deadzone. The keyboard and mouse will always take precedence over the joystick.
+At any time, only the keyboard/mouse sources or the joystick sources for a player will be active. A device will be considered active if any of the sources for that device exceed the deadzone. The keyboard and mouse will always take precedence over the joystick.
 
 You can call `player:getActiveDevice()` to see which input device is currently active. It will return either `'kbm'` (keyboard/mouse) or `'joy'` (joystick) (or `'none'` if no sources have been used yet). This is useful if you need to change what you display on screen based on the controls the player is using (such as instructions).
 
