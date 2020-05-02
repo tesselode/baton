@@ -365,4 +365,6 @@ function baton.new(config)
 	return player
 end
 
+baton.newPlayer = baton.new
+
 return baton
