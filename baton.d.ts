@@ -1,8 +1,8 @@
-import { Joystick } from "love.joystick";
+import { Joystick } from 'love.joystick';
 
 export interface PlayerConfig {
-	controls: {[key: string]: string[]};
-	pairs?: {[key: string]: string[]};
+	controls: { [key: string]: string[] };
+	pairs?: { [key: string]: string[] };
 	joystick?: Joystick;
 	deadzone?: number;
 	squareDeadzone?: boolean;
