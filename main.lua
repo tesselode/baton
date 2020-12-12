@@ -55,6 +55,9 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
+	if key == 'space' then
+		player.config.joystick = nil
+	end
 	if key == 'escape' then
 		love.event.quit()
 	end

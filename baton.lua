@@ -191,6 +191,12 @@ end
 	keyboard or joystick inputs.
 ]]
 function Player:_setActiveDevice()
+	-- if the joystick is unset, then we should make sure _activeDevice
+	-- isn't "joy" anymore, otherwise there will be an error later
+	-- when we try to query a joystick that isn't there
+	if self._activeDevice == 'joy' and not self.config.joystick then
+		self._activeDevice = 'none'
+	end
 	for _, control in pairs(self._controls) do
 		for _, source in ipairs(control.sources) do
 			local type, value = parseSource(source)
