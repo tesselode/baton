@@ -42,8 +42,8 @@ baton = require 'path.to.baton' -- if it's in subfolders
 Controls are defined using a table. Each key should be the name of a control, and each value should be another table. This table contains strings defining what sources should be mapped to the control. For example, this table
 ```lua
 controls = {
-  left = {'key:left', 'key:a', 'axis:leftx-'}
-  shoot = {'key:x', 'button:a'}
+  left = {'key:left', 'key:a', 'axis:leftx-'},
+  shoot = {'key:x', 'button:a'},
 }
 ```
 will create a control called "left" that responds to the left arrow key, the A key, and pushing the left analog stick on the controller to the left, and a control called "shoot" that responds to the X key on the keyboard and the A button on the gamepad.
