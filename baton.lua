@@ -198,16 +198,18 @@ function Player:_setActiveDevice()
 		self._activeDevice = 'none'
 	end
 	for _, control in pairs(self._controls) do
-		for _, source in ipairs(control.sources) do
-			local type, value = parseSource(source)
-			if sourceFunction.keyboardMouse[type] then
-				if sourceFunction.keyboardMouse[type](value) > self.config.deadzone then
-					self._activeDevice = 'kbm'
-					return
-				end
-			elseif self.config.joystick and sourceFunction.joystick[type] then
-				if sourceFunction.joystick[type](self.config.joystick, value) > self.config.deadzone then
-					self._activeDevice = 'joy'
+		if type(control.sources) == "table" then
+			for _, source in ipairs(control.sources) do
+				local type, value = parseSource(source)
+				if sourceFunction.keyboardMouse[type] then
+					if sourceFunction.keyboardMouse[type](value) > self.config.deadzone then
+						self._activeDevice = 'kbm'
+						return
+					end
+				elseif self.config.joystick and sourceFunction.joystick[type] then
+					if sourceFunction.joystick[type](self.config.joystick, value) > self.config.deadzone then
+						self._activeDevice = 'joy'
+					end
 				end
 			end
 		end
@@ -220,19 +222,29 @@ end
 ]]
 function Player:_getControlRawValue(control)
 	local rawValue = 0
-	for _, source in ipairs(control.sources) do
-		local type, value = parseSource(source)
-		if sourceFunction.keyboardMouse[type] and self._activeDevice == 'kbm' then
-			if sourceFunction.keyboardMouse[type](value) == 1 then
-				return 1
-			end
-		elseif sourceFunction.joystick[type] and self._activeDevice == 'joy' then
-			rawValue = rawValue + sourceFunction.joystick[type](self.config.joystick, value)
-			if rawValue >= 1 then
-				return 1
+	if type(control.sources) == "function" then
+		local result = control.sources(self)
+		if type(result) == "number" then
+			rawValue = result
+		else
+			rawValue = result and 1 or 0
+		end
+	else
+		for _, source in ipairs(control.sources) do
+			local type, value = parseSource(source)
+			if sourceFunction.keyboardMouse[type] and self._activeDevice == 'kbm' then
+				if sourceFunction.keyboardMouse[type](value) == 1 then
+					return 1
+				end
+			elseif sourceFunction.joystick[type] and self._activeDevice == 'joy' then
+				rawValue = rawValue + sourceFunction.joystick[type](self.config.joystick, value)
+				if rawValue >= 1 then
+					return 1
+				end
 			end
 		end
 	end
+	
 	return rawValue
 end
 
@@ -243,9 +255,9 @@ end
 function Player:_updateControls()
 	for _, control in pairs(self._controls) do
 		control.rawValue = self:_getControlRawValue(control)
-		control.value = control.rawValue >= self.config.deadzone and control.rawValue or 0
+		control.value = math.abs(control.rawValue) >= self.config.deadzone and control.rawValue or 0
 		control.downPrevious = control.down
-		control.down = control.value > 0
+		control.down = math.abs(control.value) > 0
 		control.pressed = control.down and not control.downPrevious
 		control.released = control.downPrevious and not control.down
 	end
